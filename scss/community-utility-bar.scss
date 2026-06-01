@@ -15,7 +15,9 @@
   justify-content: flex-start;
   gap: 0.4rem;
   max-width: 1100px;
-  margin: 2rem auto 1rem;
+  // Pull the quick links up toward the top of the content column — these are
+  // high-intent destinations, so they shouldn't sit buried below the hero.
+  margin: 0.75rem auto 0.75rem;
   padding: 0;
   background: transparent;
   border: none;
@@ -40,12 +42,14 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.85rem;
-  background: rgba(var(--primary-rgb), 0.04);
-  border: 1px solid rgba(var(--primary-rgb), 0.08);
+  // Slightly stronger fill/border + weight so the chips read as primary quick
+  // links rather than faint secondary text.
+  background: rgba(var(--primary-rgb), 0.06);
+  border: 1px solid rgba(var(--primary-rgb), 0.14);
   border-radius: 999px;
   color: var(--primary);
   font-size: 0.83rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   line-height: 1.2;
   transition: background-color 0.15s ease, border-color 0.15s ease,

@@ -11,11 +11,15 @@
 .category-boxes,
 .category-boxes-with-topics {
   max-width: 1100px;
-  margin: 1.25rem auto 2.5rem !important;
+  // Tighter top/bottom margins so the Latest topic list rises higher into the
+  // first viewport (categories are navigation; active discussion is the signal).
+  margin: 0.75rem auto 1.25rem !important;
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 380px)) !important;
+  // Narrower min track lets the (now four) cards sit in a single compact row
+  // on desktop instead of a tall block that eats most of the fold.
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
   justify-content: center !important;
-  gap: 0.9rem !important;
+  gap: 0.75rem !important;
   padding: 0 0.25rem;
 }
 
@@ -36,7 +40,7 @@
 .category-boxes-with-topics .category-box {
   position: relative;
   border-radius: 12px !important;
-  padding: 1.1rem 1.25rem !important;
+  padding: 0.8rem 0.95rem !important;
   background: rgba(var(--primary-rgb), 0.04) !important;
   border: 1px solid rgba(var(--primary-rgb), 0.1) !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
@@ -59,9 +63,9 @@
 
   .category-box-inner {
     display: grid !important;
-    grid-template-columns: 44px 1fr !important;
+    grid-template-columns: 36px 1fr !important;
     align-items: start !important;
-    column-gap: 0.95rem !important;
+    column-gap: 0.8rem !important;
     row-gap: 0 !important;
     width: 100% !important;
   }
@@ -71,8 +75,8 @@
   .logo {
     grid-column: 1 !important;
     grid-row: 1 !important;
-    width: 44px !important;
-    height: 44px !important;
+    width: 36px !important;
+    height: 36px !important;
     margin: 0 !important;
     flex-shrink: 0;
     background: rgba(var(--primary-rgb), 0.08) !important;
@@ -89,8 +93,8 @@
       opacity: 1 !important;
       color: var(--primary) !important;
       fill: currentColor !important;
-      width: 22px !important;
-      height: 22px !important;
+      width: 18px !important;
+      height: 18px !important;
     }
 
     img,
