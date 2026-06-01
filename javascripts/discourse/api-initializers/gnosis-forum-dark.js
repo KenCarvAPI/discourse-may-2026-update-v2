@@ -175,6 +175,83 @@ export default apiInitializer("1.8.0", (api) => {
       });
   }
 
+  // Guarantee the four homepage cards exist. The boxes component renders the
+  // Governance box empty (it is the only category with subcategories), leaving a
+  // blank slot. After decorateBoxes has tagged the boxes that DID render, drop
+  // any empty/contentless boxes and inject a proper card for any of the four
+  // slugs that is still missing, in the configured order.
+  function ensureCards() {
+    const grid = document.querySelector(".custom-category-boxes");
+    if (!grid) {
+      return;
+    }
+
+    // Remove blank boxes (a glitchy parent box can render with no link/text).
+    grid.querySelectorAll(".category-box").forEach((b) => {
+      if (!b.querySelector('a[href*="/c/"]') && !b.textContent.trim()) {
+        b.remove();
+      }
+    });
+
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    const urlForSlug = (slug) => {
+      const c = categories.find(
+        (cat) => cat && cat.slug === slug && !cat.parent_category_id
+      );
+      return c ? c.url || `/c/${c.slug}/${c.id}` : `/c/${slug}`;
+    };
+
+    const raw = settings.category_slugs;
+    const order = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    let prev = null;
+    order.forEach((slug) => {
+      let box = grid.querySelector(`.gn-cat-${slug}`);
+      if (!box) {
+        const cfg = CARDS[slug] || { label: labelFor(slug), sub: "" };
+        box = document.createElement("span");
+        box.className = `category-box gn-cat-${slug} gn-injected`;
+        box.innerHTML = `<a href="${urlForSlug(
+          slug
+        )}"><div class="category-box-inner"><h3 class="category-box-heading">${
+          cfg.label
+        }</h3><p class="description">${cfg.sub}</p></div></a>`;
+        if (prev) {
+          prev.insertAdjacentElement("afterend", box);
+        } else {
+          grid.appendChild(box);
+        }
+      }
+      prev = box;
+    });
+  }
+
+  // Relabel the native left sidebar category links so they match the rest of
+  // the theme (e.g. "Knowledge Base" -> "Onboarding"). Discourse renders the
+  // real category name there; we swap only the visible text, keeping the link.
+  function decorateSidebar() {
+    document
+      .querySelectorAll('.sidebar-section-link[href*="/c/"]')
+      .forEach((link) => {
+        const m = (link.getAttribute("href") || "").match(/\/c\/([^/?#]+)/);
+        if (!m) {
+          return;
+        }
+        const cfg = CARDS[m[1]];
+        if (!cfg) {
+          return;
+        }
+        const textEl =
+          link.querySelector(".sidebar-section-link-content-text") || link;
+        if (textEl.textContent.trim() !== cfg.label) {
+          textEl.textContent = cfg.label;
+        }
+      });
+  }
+
   // Force the search-banner opener copy and add a "start a topic" CTA under the
   // search box. The headline/subhead can also be set natively in the
   // discourse-search-banner component settings; this keeps the copy in the
@@ -223,6 +300,7 @@ export default apiInitializer("1.8.0", (api) => {
     window.requestAnimationFrame(() => {
       ensureTopNav();
       syncActiveNav();
+      decorateSidebar();
       decorateSearchBanner();
 
       const router = api.container.lookup("service:router");
@@ -235,6 +313,7 @@ export default apiInitializer("1.8.0", (api) => {
       // subcategory as that parent category.
       if (isHome) {
         decorateBoxes();
+        ensureCards();
       }
       ensureHero(isHome);
     });
