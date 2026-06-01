@@ -27,7 +27,12 @@ export default apiInitializer("1.8.0", (api) => {
       return;
     }
 
-    const slugs = (settings.category_slugs || []).filter(Boolean);
+    // `type: list` settings reach JS as a pipe-delimited string in most
+    // Discourse versions (some expose an array). Handle both.
+    const raw = settings.category_slugs;
+    const slugs = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
+      .map((s) => s.trim())
+      .filter(Boolean);
     const bar = document.createElement("nav");
     bar.id = NAV_ID;
     bar.className = "gn-topnav";
@@ -90,7 +95,9 @@ export default apiInitializer("1.8.0", (api) => {
         ".category-list .category-box, .custom-category-boxes .category-box, .category-list-item"
       )
       .forEach((box) => {
-        const link = box.querySelector('a[href*="/c/"]');
+        const link = box.matches('a[href*="/c/"]')
+          ? box
+          : box.querySelector('a[href*="/c/"]');
         if (!link) {
           return;
         }
