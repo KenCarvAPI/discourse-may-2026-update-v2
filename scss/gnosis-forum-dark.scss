@@ -179,17 +179,47 @@ html .background-container {
   background-image: url($updates);
 }
 
-// ---------- Uniform card heading color ----------
-// Real category boxes render the heading as a colored category badge/link, so
-// Onboarding (knowledge-base) and Updates (announcements) picked up their green
-// category color while the plain-text injected cards stayed cream. Force every
-// card heading to --primary so all four read the same neutral white style.
-.custom-category-boxes .category-box .category-box-heading,
-.custom-category-boxes .category-box .category-box-heading a,
-.custom-category-boxes .category-box .category-box-heading .badge-category__name,
-.custom-category-boxes .category-box h3,
-.custom-category-boxes .category-box h3 a {
-  color: var(--primary) !important;
+// ---------- Uniform card heading + description ----------
+// Some homepage cards are injected as plain <h3> text (General, Governance)
+// while others render from the component with the title wrapped in a category
+// badge link (Onboarding, Updates). That made the badge-backed cards differ:
+// green category color, a colored swatch dot, and the badge's own font sizing.
+// Normalise every custom-box heading/description to one style so all four cards
+// are identical regardless of how each was rendered.
+.custom-category-boxes .category-box {
+  .category-box-heading,
+  h3 {
+    margin: 0 !important;
+    text-align: left !important;
+    font-size: 1rem !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.005em;
+    line-height: 1.3 !important;
+
+    a,
+    .badge-category__name {
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      line-height: inherit !important;
+      margin: 0 !important;
+      color: var(--primary) !important;
+      text-decoration: none;
+    }
+
+    // Drop the colored category swatch so badge-backed cards match the plain
+    // injected ones.
+    .badge-category__bg,
+    .badge-wrapper .badge-category__bg {
+      display: none !important;
+    }
+  }
+
+  .description {
+    font-size: 0.83rem !important;
+    line-height: 1.5 !important;
+    margin: 0.2rem 0 0 !important;
+    color: #b8b6b7 !important;
+  }
 }
 
 // ---------- Hide subcategory tiles on specific category pages ----------
