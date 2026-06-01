@@ -1,0 +1,108 @@
+// ---------- Community utility bar ----------
+// External resource links (Docs, Snapshot, Treasury, GIP Tracker) shown above
+// the category list. Kept intentionally minimal so it reads as quiet, helpful
+// secondary navigation — no label, no nested boxes, hairline edge only.
+//
+// Note: Discourse renders this connector inside an outer outlet wrapper that
+// also carries the .community-utility-bar class in recent versions. All
+// styling targets the direct flex layout so the outer wrapper renders as a
+// transparent pass-through.
+
+.community-utility-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  max-width: 1100px;
+  margin: 2rem auto 1rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+// Discourse wraps the connector in an outer <span> that ALSO carries the
+// .community-utility-bar class. The inner <div> from our HBS is a flex
+// child of that wrapper, and `margin: auto` on a flex item overrides
+// `justify-content: flex-start` and centers the child — which is why
+// the chips kept appearing centered. Force the inner div to span the
+// full width of the outer wrapper with zero horizontal margin so the
+// chips left-align to the actual content edge.
+.discovery-list-container-top-outlet > .community-utility-bar {
+  width: 100%;
+  margin: 0;
+  max-width: none;
+}
+
+.community-utility-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(var(--primary-rgb), 0.04);
+  border: 1px solid rgba(var(--primary-rgb), 0.08);
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 0.83rem;
+  font-weight: 500;
+  text-decoration: none;
+  line-height: 1.2;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+
+  &:visited {
+    color: var(--primary);
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--tertiary-rgb), 0.1);
+    border-color: rgba(var(--tertiary-rgb), 0.4);
+    color: var(--primary);
+    text-decoration: none;
+
+    .community-utility-arrow {
+      opacity: 1;
+      transform: translate(1px, -1px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 2px;
+  }
+}
+
+.community-utility-emoji {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+.community-utility-label {
+  white-space: nowrap;
+}
+
+.community-utility-arrow {
+  font-size: 0.7em;
+  opacity: 0.45;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+// ---------- Responsive ----------
+
+@media (max-width: 800px) {
+  .community-utility-bar {
+    margin: 0.4rem 0.5rem 1.1rem;
+    gap: 0.3rem;
+  }
+
+  .community-utility-link {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .community-utility-arrow {
+    display: none;
+  }
+}

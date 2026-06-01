@@ -1,0 +1,400 @@
+// ---------- Category tiles ----------
+// Elevated, product-grade category cards. Inspired by modern SaaS landing
+// pages: generous breathing room, refined typography, a small accented icon
+// container (not a giant colored block), subtle shadow, and a clean hover
+// elevation. The aim is "this looks like a product I want to explore," not
+// "discourse default with rounded corners."
+
+// ----- Grid container -----
+// Landing-page category grid. Same design language as the subcategory grid:
+// capped card width, icon-left content-right, quiet shadow, hover elevation.
+.category-boxes,
+.category-boxes-with-topics {
+  max-width: 1100px;
+  margin: 1.25rem auto 2.5rem !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 380px)) !important;
+  justify-content: center !important;
+  gap: 0.9rem !important;
+  padding: 0 0.25rem;
+}
+
+// Cascade left-alignment through every descendant of a card
+.category-boxes .category-box,
+.category-boxes-with-topics .category-box {
+  text-align: left !important;
+
+  > *,
+  > * > *,
+  > * > * > * {
+    text-align: inherit;
+  }
+}
+
+// ----- Card -----
+.category-boxes .category-box,
+.category-boxes-with-topics .category-box {
+  position: relative;
+  border-radius: 12px !important;
+  padding: 1.1rem 1.25rem !important;
+  background: rgba(var(--primary-rgb), 0.04) !important;
+  border: 1px solid rgba(var(--primary-rgb), 0.1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
+  min-height: 0 !important;
+  overflow: hidden;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.18s ease, transform 0.15s ease;
+
+  &:hover {
+    background: rgba(var(--primary-rgb), 0.07) !important;
+    border-color: rgba(var(--tertiary-rgb), 0.45) !important;
+    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4),
+      0 2px 6px -2px rgba(var(--tertiary-rgb), 0.18) !important;
+    transform: translateY(-2px);
+
+    .category-logo {
+      background: rgba(var(--tertiary-rgb), 0.14) !important;
+    }
+  }
+
+  .category-box-inner {
+    display: grid !important;
+    grid-template-columns: 44px 1fr !important;
+    align-items: start !important;
+    column-gap: 0.95rem !important;
+    row-gap: 0 !important;
+    width: 100% !important;
+  }
+
+  // Icon container
+  .category-logo,
+  .logo {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+    background: rgba(var(--primary-rgb), 0.08) !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important;
+    transition: background-color 0.15s ease, transform 0.2s ease;
+
+    .d-icon,
+    svg {
+      opacity: 1 !important;
+      color: var(--primary) !important;
+      fill: currentColor !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    img,
+    .category-logo-wrap img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 10px !important;
+      opacity: 1 !important;
+      display: block;
+    }
+  }
+
+  // Content column anchor
+  .category-details,
+  .category-box-heading,
+  > .category-box-inner > h3,
+  > .category-box-inner > .description {
+    grid-column: 2 !important;
+    min-width: 0;
+  }
+
+  .category-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.25rem !important;
+    justify-content: center;
+  }
+
+  // Heading
+  .category-box-heading,
+  h3 {
+    margin: 0 !important;
+    text-align: left !important;
+    font-size: 1rem !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.005em;
+    line-height: 1.3 !important;
+
+    a,
+    a.parent-box-link,
+    a.parent-box-link h3,
+    .badge-category__name {
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      line-height: inherit !important;
+      margin: 0 !important;
+      color: var(--primary) !important;
+      text-decoration: none;
+    }
+
+    .badge-category__bg,
+    .badge-wrapper .badge-category__bg {
+      display: none !important;
+    }
+  }
+
+  // Description — full subtitle, no truncation. Card height flexes to fit.
+  .description {
+    font-size: 0.83rem !important;
+    line-height: 1.5 !important;
+    margin: 0.2rem 0 0 !important;
+    color: #b8b6b7 !important;
+  }
+
+  .d-icon-lock {
+    color: #8c8a8b !important;
+    margin-right: 0.3em;
+    font-size: 0.85em;
+  }
+
+  // Suppress empty featured-topics divider
+  .featured-topics:empty,
+  ul.featured-topics:empty {
+    display: none !important;
+    border: none !important;
+  }
+}
+
+// ---------- Hide duplicate bottom subcategory grid ----------
+// Confirmed via DevTools: the bottom grid on /c/{slug} pages is rendered as
+//   <section class="category-boxes with-logos ember-view">
+// The `.with-logos` modifier class is the differentiator — the landing-page
+// category grid uses `.category-boxes` WITHOUT `.with-logos`. Targeting the
+// combined selector hides the subcategory duplicate without affecting the
+// landing page, no body-class scoping required.
+section.category-boxes.with-logos,
+.category-boxes.with-logos {
+  display: none !important;
+}
+
+// ---------- Top compact subcategory row ----------
+// The remaining row of subcategory tiles at the top of a parent category page.
+// Force single-row layout, allow graceful horizontal scroll on narrow screens,
+// and tighten the vertical margins so it sits close to the page header.
+
+.parent-category-row,
+.subcategory-list:not(.subcategory-list-with-featured-topics),
+.discovery-list-container-top + .subcategory-list,
+.category-list-item.category.has-children > .subcategories,
+[class*="category-group-boxes"],
+[class*="category-group-box-row"] {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 0.5rem !important;
+  margin: 0.5rem auto 1rem !important;
+  padding: 0.25rem 0 !important;
+  max-width: 1100px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+
+  // Hide native scrollbar visually but keep scroll behavior
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-rgb), 0.15);
+    border-radius: 2px;
+  }
+
+  // Each tile in the top row — keep compact, prevent flex-shrink so they
+  // stay readable when the row overflows horizontally.
+  > .category-box,
+  > .subcategory-box,
+  > .category-group-box,
+  > [class*="category-group-box"]:not([class*="row"]),
+  > a,
+  > div {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+// ---------- Compact subcategory nav row ----------
+// The horizontal row of subcategory pills that appears ABOVE the topic list
+// on a parent category page (separate from the larger card grid below).
+// Default Discourse renders these as oversized boxes with colored swatches.
+// Slim them into proper navigation chips that match the rest of the theme.
+
+.list-controls + .subcategory-list-item,
+.navigation-container + .subcategory-list,
+.subcategory-list-with-featured-topics {
+  margin: 0.5rem 0 1.25rem;
+}
+
+.subcategory-list-item,
+.list-controls .subcategory-list-item,
+.subcategories-list .subcategory-list-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  padding: 0.35rem 0.7rem 0.35rem 0.4rem !important;
+  background: rgba(var(--primary-rgb), 0.04) !important;
+  border: 1px solid rgba(var(--primary-rgb), 0.08) !important;
+  border-radius: 8px !important;
+  margin: 0 0.4rem 0.4rem 0 !important;
+  min-height: 0 !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(var(--tertiary-rgb), 0.1) !important;
+    border-color: rgba(var(--tertiary-rgb), 0.35) !important;
+  }
+
+  .category-logo,
+  .logo {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0;
+    background: rgba(var(--primary-rgb), 0.06) !important;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 !important;
+
+    .d-icon,
+    svg {
+      opacity: 1 !important;
+      color: var(--primary) !important;
+      width: 12px;
+      height: 12px;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+  }
+
+  a,
+  .category-name {
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    color: var(--primary) !important;
+    line-height: 1.2 !important;
+  }
+}
+
+// ---------- Subcategory chips ----------
+// Inline pill list shown under a parent category's description. Refined to
+// match the elevated card aesthetic: subtle background, cream text, smooth
+// hover that picks up the brand-green tertiary tint.
+
+.category-boxes .category-box .subcategories,
+.category-boxes-with-topics .category-box .subcategories,
+.category-list .subcategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+
+  .subcategory,
+  a.subcategory {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(var(--primary-rgb), 0.05);
+    border: 1px solid rgba(var(--primary-rgb), 0.12);
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--primary);
+    text-decoration: none;
+    line-height: 1.3;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      background: rgba(var(--tertiary-rgb), 0.12);
+      border-color: rgba(var(--tertiary-rgb), 0.45);
+      color: var(--primary);
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .badge-category__name {
+      color: inherit;
+    }
+
+    // Hide the default colored category swatch — the chip itself provides
+    // identity, the swatch competes with the refined pill shape.
+    .badge-category__bg {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ---------- Featured topics inside a landing-page card ----------
+// When featured topics ARE present (e.g. category-boxes-with-topics layout),
+// render them as a tight inline list under the description with a hairline
+// divider. Empty containers are already hidden by `:empty` in the main block.
+
+.category-boxes-with-topics .category-box {
+  .featured-topics:not(:empty) {
+    grid-column: 2 !important;
+    margin-top: 0.7rem !important;
+    padding-top: 0.6rem !important;
+    border-top: 1px solid rgba(var(--primary-rgb), 0.08) !important;
+
+    li {
+      font-size: 0.8rem !important;
+      line-height: 1.5 !important;
+      padding: 0.12rem 0 !important;
+    }
+
+    a.title {
+      color: var(--primary) !important;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: var(--tertiary) !important;
+      }
+    }
+  }
+}
+
+// ---------- Responsive ----------
+
+@media (max-width: 700px) {
+  .category-boxes,
+  .category-boxes-with-topics {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    margin: 1rem 0.5rem 1.75rem !important;
+
+    .category-box {
+      padding: 0.9rem 1rem !important;
+      max-width: 100%;
+    }
+  }
+
+  .category-boxes .category-box .category-logo,
+  .category-boxes-with-topics .category-box .category-logo {
+    width: 38px !important;
+    height: 38px !important;
+  }
+}

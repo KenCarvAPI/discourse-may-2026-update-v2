@@ -1,0 +1,11 @@
+{
+  "name": "discourse-may-2026-update",
+  "version": "1.0.0",
+  "description": "May 2026 dark refresh of the Gnosis DAO forum theme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KenCarvAPI/discourse-gnosisdao-theme-may26.git"
+  },
+  "author": "Gnosis Chain (https://gnosis.io)",
+  "license": "MIT"
+}
