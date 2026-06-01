@@ -199,9 +199,9 @@ export default apiInitializer("1.8.0", (api) => {
       }
       if (first) {
         if (
-          p.textContent.trim() !== "Governance forum for the Gnosis Ecosystem"
+          p.textContent.trim() !== "Governance discussion for the Gnosis Ecosystem"
         ) {
-          p.textContent = "Governance forum for the Gnosis Ecosystem";
+          p.textContent = "Governance discussion for the Gnosis Ecosystem";
         }
         first = false;
       } else {
