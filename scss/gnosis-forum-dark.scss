@@ -166,3 +166,34 @@ body.category-governance .custom-category-boxes,
 body.category-knowledge-base .custom-category-boxes {
   display: none !important;
 }
+
+// ---------- Tighten the top of those subcategory pages ----------
+// With the subcategory box group hidden, the navigation controls left a large
+// empty band before the topic list. Pull the content up on these pages.
+body.category-general,
+body.category-governance,
+body.category-knowledge-base {
+  .navigation-container {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+  // The discovery list container (quick-link chips + topic list) should sit
+  // directly under the nav controls rather than after a tall gap.
+  .list-container .navigation-container + * {
+    margin-top: 0 !important;
+  }
+  .community-utility-bar {
+    margin-top: 0.25rem !important;
+  }
+}
+
+// ---------- Hide specific categories from the left sidebar ----------
+// Treasury and Delegate communication should not appear in the sidebar
+// Categories list. Match on the category link href so it works regardless of
+// the sidebar link's other classes.
+.sidebar-section-link-wrapper:has(a.sidebar-section-link[href*="/c/treasury"]),
+.sidebar-section-link-wrapper:has(
+    a.sidebar-section-link[href*="/c/delegate-communic"]
+  ) {
+  display: none !important;
+}

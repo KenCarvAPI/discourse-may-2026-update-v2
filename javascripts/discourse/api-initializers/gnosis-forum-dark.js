@@ -60,15 +60,28 @@ export default apiInitializer("1.8.0", (api) => {
     const slugs = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
       .map((s) => s.trim())
       .filter(Boolean);
+
+    // Resolve each slug to its real category URL (which includes the id).
+    // A bare /c/<slug> link does not always route, which is why the Governance
+    // link did not navigate; /c/<slug>/<id> is the canonical, reliable form.
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    const urlForSlug = (slug) => {
+      const c = categories.find(
+        (cat) => cat && cat.slug === slug && !cat.parent_category_id
+      );
+      return c ? c.url || `/c/${c.slug}/${c.id}` : `/c/${slug}`;
+    };
+
     const bar = document.createElement("nav");
     bar.id = NAV_ID;
     bar.className = "gn-topnav";
 
     let html = '<div class="gn-topnav-inner">';
     slugs.forEach((slug) => {
-      html += `<a class="gn-topnav-link" href="/c/${slug}">${labelFor(
+      html += `<a class="gn-topnav-link" data-gn-slug="${slug}" href="${urlForSlug(
         slug
-      )}</a>`;
+      )}">${labelFor(slug)}</a>`;
     });
     if (settings.dao_tracker_url) {
       html += `<a class="gn-topnav-link gn-topnav-ext" href="${settings.dao_tracker_url}" target="_blank" rel="noopener">DAO Tracker ↗</a>`;
@@ -82,10 +95,10 @@ export default apiInitializer("1.8.0", (api) => {
   function syncActiveNav() {
     const path = window.location.pathname;
     document.querySelectorAll(".gn-topnav-link").forEach((a) => {
-      const href = a.getAttribute("href") || "";
+      const slug = a.getAttribute("data-gn-slug");
       a.classList.toggle(
         "active",
-        href.startsWith("/c/") && path.startsWith(href)
+        !!slug && path.startsWith(`/c/${slug}`)
       );
     });
   }
