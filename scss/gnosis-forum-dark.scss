@@ -96,44 +96,72 @@ html .background-container {
   }
 }
 
-// ---------- Illustrated category tiles ----------
-// Swap the per-category logo for the matched illustration on the four canonical
-// categories. Only tagged boxes (gn-cat-<slug>, added by the JS) are touched,
-// so any other category keeps its normal icon. If your real slugs differ,
-// update both the `category_slugs` setting and the four blocks below.
-.custom-category-boxes .category-box[class*="gn-cat-"] {
-  .category-logo {
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    border-radius: 12px !important;
-    background-color: #0f2b22 !important;
-    background-size: cover !important;
-    background-position: center !important;
+// ---------- Show only the four canonical category cards ----------
+// The forum has more categories than we surface (Treasury, Delegate
+// communication, Staff, etc.). The JS tags every box with gn-cat-<slug>;
+// hide any tagged box that is not one of the four we want.
+.custom-category-boxes
+  .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-governance):not(.gn-cat-knowledge-base):not(.gn-cat-announcements) {
+  display: none !important;
+}
 
-    // hide the default icon / image so the illustration shows through
-    .d-icon,
-    svg,
-    img {
-      display: none !important;
-    }
+// ---------- Illustrated category tiles ----------
+// Swap the per-category logo for the matched illustration on the four cards.
+// Real slugs: general, governance, knowledge-base (shown as Onboarding),
+// announcements (shown as Updates). Only tagged boxes (gn-cat-<slug>, added by
+// the JS) are touched. If a slug differs on your install, update the
+// `category_slugs` setting, the CARDS map in the JS, and the blocks below.
+.custom-category-boxes .category-box[class*="gn-cat-"] {
+  // Hide the default logo/badge slot. Only General has an uploaded logo, so
+  // relying on .category-logo leaves the other cards empty. Instead the
+  // illustration is drawn as a tile on the inner's ::before, which renders for
+  // every card regardless of whether the category has an uploaded logo.
+  .category-logo {
+    display: none !important;
   }
 
   .category-box-inner {
-    grid-template-columns: 56px 1fr !important;
-    align-items: center !important;
+    display: block !important;
+    position: relative;
+    min-height: 56px;
+    padding-left: 72px !important; // 56px tile + 16px gap
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background-color: #0f2b22;
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
   }
 }
 
-.custom-category-boxes .gn-cat-general .category-logo {
-  background-image: url($general) !important;
+.custom-category-boxes .gn-cat-general .category-box-inner::before {
+  background-image: url($general);
 }
-.custom-category-boxes .gn-cat-governance .category-logo {
-  background-image: url($governance) !important;
+.custom-category-boxes .gn-cat-governance .category-box-inner::before {
+  background-image: url($governance);
 }
-.custom-category-boxes .gn-cat-updates .category-logo {
-  background-image: url($updates) !important;
+.custom-category-boxes .gn-cat-knowledge-base .category-box-inner::before {
+  background-image: url($onboarding);
 }
-.custom-category-boxes .gn-cat-onboarding .category-logo {
-  background-image: url($onboarding) !important;
+.custom-category-boxes .gn-cat-announcements .category-box-inner::before {
+  background-image: url($updates);
+}
+
+// ---------- Hide subcategory tiles on specific category pages ----------
+// On these category pages the discourse-category-group-boxes component renders
+// a row of subcategory tiles (Governance: GIPs, Closed Proposals, Governance
+// Resources; Knowledge Base: Support, Archive). Hide that box group so the
+// page goes straight to the topic list.
+body.category-governance .custom-category-boxes,
+body.category-knowledge-base .custom-category-boxes {
+  display: none !important;
 }
