@@ -175,11 +175,55 @@ export default apiInitializer("1.8.0", (api) => {
       });
   }
 
+  // Force the search-banner opener copy and add a "start a topic" CTA under the
+  // search box. The headline/subhead can also be set natively in the
+  // discourse-search-banner component settings; this keeps the copy in the
+  // theme so it stays consistent.
+  function decorateSearchBanner() {
+    const wrap = document.querySelector(".custom-search-banner-wrap");
+    if (!wrap) {
+      return;
+    }
+
+    const h1 = wrap.querySelector("h1");
+    if (h1 && h1.textContent.trim() !== "Welcome to Gnosis") {
+      h1.textContent = "Welcome to Gnosis";
+    }
+
+    // First text paragraph becomes the subhead; hide any others (e.g. the old
+    // "Join the conversation here" line).
+    let first = true;
+    wrap.querySelectorAll("p").forEach((p) => {
+      if (p.closest(".search-menu, .search-widget, .results")) {
+        return;
+      }
+      if (first) {
+        if (
+          p.textContent.trim() !== "Governance forum for the Gnosis Ecosystem"
+        ) {
+          p.textContent = "Governance forum for the Gnosis Ecosystem";
+        }
+        first = false;
+      } else {
+        p.style.display = "none";
+      }
+    });
+
+    if (!wrap.querySelector(".gn-banner-cta")) {
+      const cta = document.createElement("p");
+      cta.className = "gn-banner-cta";
+      cta.innerHTML =
+        'Idea? <a href="/new-topic?category=governance">Start a new topic to share it.</a>';
+      wrap.appendChild(cta);
+    }
+  }
+
   api.onPageChange(() => {
     // defer one frame so the route has rendered
     window.requestAnimationFrame(() => {
       ensureTopNav();
       syncActiveNav();
+      decorateSearchBanner();
 
       const router = api.container.lookup("service:router");
       const route = router && router.currentRouteName;

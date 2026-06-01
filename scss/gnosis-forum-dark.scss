@@ -32,6 +32,24 @@ html .background-container {
     var(--secondary);
 }
 
+// ---------- Search-banner opener CTA ----------
+.gn-banner-cta {
+  margin: 1em auto 0;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--primary-medium-high);
+
+  a {
+    color: var(--gn-mint);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 // ---------- Top category bar (injected by the api-initializer) ----------
 .gn-topnav {
   border-bottom: 1px solid rgba(var(--primary-rgb), 0.12);
