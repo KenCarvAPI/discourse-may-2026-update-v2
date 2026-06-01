@@ -1,8 +1,64 @@
 // ---------- Landing-page information architecture ----------
 // Cohesive set of layout/IA refinements for the discovery (categories + latest)
 // page. Kept in one partial so the whole set is easy to review or revert.
-// Covers: Latest-list visual hierarchy (#2), consistent category colour cue
-// (#3), hero de-emphasis (#5), and vertical rhythm (#7).
+// Covers: compact category grid (#1), Latest-list visual hierarchy (#2),
+// consistent category colour cue (#3), hero de-emphasis (#5), rhythm (#7).
+
+// ----- #1 Compact category grid -----
+// IMPORTANT: the discourse-category-group-boxes component renders
+// `.custom-category-boxes` (a <span>) containing `.category-box` children and
+// sets its OWN `grid-template-columns: 1fr 1fr`. It does NOT use the native
+// `.category-boxes` wrapper (that one is hidden), so styling must target the
+// custom classes here, with !important to win over the component's own rules.
+.custom-category-boxes:not(.above-discovery-categories-outlet) {
+  max-width: 1100px;
+  // Single compact row of the four cards on desktop instead of a tall 2x2 grid,
+  // so the Latest list rises into the first viewport.
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  grid-template-rows: auto !important;
+  gap: 0.75rem !important;
+  margin: 0.75rem auto 1.25rem !important;
+
+  .category-box {
+    padding: 0.8rem 0.95rem !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+  }
+
+  .category-box-inner {
+    column-gap: 0.7rem !important;
+  }
+
+  // Smaller icon container (was ~44px) for a tighter card.
+  .category-logo {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+
+    .d-icon,
+    svg {
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    img {
+      width: 36px !important;
+      height: 36px !important;
+    }
+  }
+
+  .description {
+    font-size: 0.83rem !important;
+    line-height: 1.45 !important;
+  }
+}
+
+@media (max-width: 700px) {
+  // Stack to a single column on phones.
+  .custom-category-boxes:not(.above-discovery-categories-outlet) {
+    grid-template-columns: 1fr !important;
+  }
+}
 
 // ----- #2 Latest list: visual hierarchy -----
 // Make the reply count a real signal instead of tiny right-aligned text, and
