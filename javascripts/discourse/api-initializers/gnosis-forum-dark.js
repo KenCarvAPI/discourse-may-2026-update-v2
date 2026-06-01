@@ -167,11 +167,18 @@ export default apiInitializer("1.8.0", (api) => {
     window.requestAnimationFrame(() => {
       ensureTopNav();
       syncActiveNav();
-      decorateBoxes();
 
       const router = api.container.lookup("service:router");
       const route = router && router.currentRouteName;
       const isHome = !!route && route.startsWith("discovery.categories");
+
+      // Only decorate on the categories homepage. On a single category page
+      // the boxes are subcategories whose URLs are /c/<parent>/<child>/<id>;
+      // the slug regex would read the parent ("general") and mislabel every
+      // subcategory as that parent category.
+      if (isHome) {
+        decorateBoxes();
+      }
       ensureHero(isHome);
     });
   });

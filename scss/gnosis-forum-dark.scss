@@ -161,6 +161,7 @@ html .background-container {
 // a row of subcategory tiles (Governance: GIPs, Closed Proposals, Governance
 // Resources; Knowledge Base: Support, Archive). Hide that box group so the
 // page goes straight to the topic list.
+body.category-general .custom-category-boxes,
 body.category-governance .custom-category-boxes,
 body.category-knowledge-base .custom-category-boxes {
   display: none !important;
