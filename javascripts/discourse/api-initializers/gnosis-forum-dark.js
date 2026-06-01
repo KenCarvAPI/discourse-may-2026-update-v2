@@ -5,16 +5,43 @@ import { apiInitializer } from "discourse/lib/api";
 //   - top category bar: inserted after the site header
 //   - hero: prepended to #main-outlet (off by default; the search banner
 //     already serves as the homepage welcome)
-//   - category boxes: tagged with gn-cat-<slug> so the SCSS can paint each
-//     tile's illustration. Targets both the native .category-list markup and
-//     the .custom-category-boxes markup rendered by the
-//     discourse-category-group-boxes component this theme uses.
+//   - category boxes: tagged with gn-cat-<slug>, and the four surfaced cards
+//     get their label + subtitle forced to the copy below so the homepage
+//     reads consistently regardless of each category's admin description.
 
 export default apiInitializer("1.8.0", (api) => {
   const NAV_ID = "gn-topnav";
   const HERO_ID = "gn-hero";
 
+  // Real category slug -> card label + subtitle.
+  //   general / governance      kept as-is
+  //   knowledge-base            shown as "Onboarding"
+  //   announcements             shown as "Updates"
+  // If a slug differs on your install, change the key here, the
+  // `category_slugs` setting, and the matching .gn-cat-<slug> rule in the SCSS.
+  const CARDS = {
+    general: {
+      label: "General",
+      sub: "General discussion on technical and community topics.",
+    },
+    governance: {
+      label: "Governance",
+      sub: "Open governance: every member can propose, debate, and vote GIPs.",
+    },
+    "knowledge-base": {
+      label: "Onboarding",
+      sub: "New to GnosisDAO? Start here.",
+    },
+    announcements: {
+      label: "Updates",
+      sub: "Official announcements and the latest from across the DAO.",
+    },
+  };
+
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const labelFor = (slug) =>
+    (CARDS[slug] && CARDS[slug].label) ||
+    slug.split("-").map(cap).join(" ");
 
   function ensureTopNav() {
     if (document.getElementById(NAV_ID)) {
@@ -39,11 +66,9 @@ export default apiInitializer("1.8.0", (api) => {
 
     let html = '<div class="gn-topnav-inner">';
     slugs.forEach((slug) => {
-      const label = slug
-        .split("-")
-        .map(cap)
-        .join(" ");
-      html += `<a class="gn-topnav-link" href="/c/${slug}">${label}</a>`;
+      html += `<a class="gn-topnav-link" href="/c/${slug}">${labelFor(
+        slug
+      )}</a>`;
     });
     if (settings.dao_tracker_url) {
       html += `<a class="gn-topnav-link gn-topnav-ext" href="${settings.dao_tracker_url}" target="_blank" rel="noopener">DAO Tracker ↗</a>`;
@@ -89,7 +114,7 @@ export default apiInitializer("1.8.0", (api) => {
     mount.insertAdjacentElement("afterbegin", hero);
   }
 
-  function tagBoxes() {
+  function decorateBoxes() {
     document
       .querySelectorAll(
         ".category-list .category-box, .custom-category-boxes .category-box, .category-list-item"
@@ -102,8 +127,37 @@ export default apiInitializer("1.8.0", (api) => {
           return;
         }
         const m = (link.getAttribute("href") || "").match(/\/c\/([^/?#]+)/);
-        if (m && !box.classList.contains(`gn-cat-${m[1]}`)) {
-          box.classList.add(`gn-cat-${m[1]}`);
+        if (!m) {
+          return;
+        }
+        const slug = m[1];
+        if (!box.classList.contains(`gn-cat-${slug}`)) {
+          box.classList.add(`gn-cat-${slug}`);
+        }
+
+        const cfg = CARDS[slug];
+        if (!cfg) {
+          return;
+        }
+
+        // Force the card title (preserve the link, swap only the visible name).
+        const heading = box.querySelector(".category-box-heading");
+        if (heading) {
+          const nameEl =
+            heading.querySelector(".badge-category__name") ||
+            heading.querySelector("a") ||
+            heading;
+          if (nameEl.textContent.trim() !== cfg.label) {
+            nameEl.textContent = cfg.label;
+          }
+        }
+
+        // Force the card subtitle.
+        const desc = box.querySelector(
+          ".description, .category-box-description"
+        );
+        if (desc && desc.textContent.trim() !== cfg.sub) {
+          desc.textContent = cfg.sub;
         }
       });
   }
@@ -113,7 +167,7 @@ export default apiInitializer("1.8.0", (api) => {
     window.requestAnimationFrame(() => {
       ensureTopNav();
       syncActiveNav();
-      tagBoxes();
+      decorateBoxes();
 
       const router = api.container.lookup("service:router");
       const route = router && router.currentRouteName;
