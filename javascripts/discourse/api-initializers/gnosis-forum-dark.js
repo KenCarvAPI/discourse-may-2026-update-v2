@@ -252,6 +252,67 @@ export default apiInitializer("1.8.0", (api) => {
           textEl.textContent = cfg.label;
         }
       });
+
+    ensureSidebarUpdatesUnderOnboarding();
+  }
+
+  // Guarantee the "Updates" (announcements) link sits directly beneath
+  // "Onboarding" (knowledge-base) in the left sidebar. If it is already in the
+  // list but ordered elsewhere, move it; if it is missing entirely, build it by
+  // cloning the Onboarding row so it inherits the native sidebar markup.
+  function ensureSidebarUpdatesUnderOnboarding() {
+    const wrapperFor = (slug) => {
+      const link = document.querySelector(
+        `.sidebar-section-link[href*="/c/${slug}"]`
+      );
+      return link ? link.closest(".sidebar-section-link-wrapper") || link : null;
+    };
+
+    const onboarding = wrapperFor("knowledge-base");
+    if (!onboarding || !onboarding.parentNode) {
+      return;
+    }
+
+    let updates = wrapperFor("announcements");
+
+    if (updates) {
+      // Already present — only move it if it is not already the next sibling.
+      if (onboarding.nextElementSibling !== updates) {
+        onboarding.parentNode.insertBefore(
+          updates,
+          onboarding.nextElementSibling
+        );
+      }
+      return;
+    }
+
+    // Missing — resolve the announcements category URL and clone the row.
+    // Canonical form is /c/<slug>/<id> (a bare /c/<slug> does not always
+    // route), so prefer the live category record and fall back to the known id.
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    const cat = categories.find(
+      (c) => c && c.slug === "announcements" && !c.parent_category_id
+    );
+    const url = (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
+      "/c/announcements/34";
+
+    updates = onboarding.cloneNode(true);
+    const link = updates.querySelector(".sidebar-section-link") || updates;
+    link.setAttribute("href", url);
+    link.classList.remove("active");
+    link.removeAttribute("aria-current");
+    const textEl =
+      link.querySelector(".sidebar-section-link-content-text") || link;
+    textEl.textContent = (CARDS.announcements && CARDS.announcements.label) ||
+      "Updates";
+    // Drop any unread/new count badge carried over from the cloned row.
+    const badge = link.querySelector(".sidebar-section-link-content-badge");
+    if (badge) {
+      badge.remove();
+    }
+
+    onboarding.parentNode.insertBefore(updates, onboarding.nextElementSibling);
   }
 
   // Force the search-banner opener copy and add a "start a topic" CTA under the
