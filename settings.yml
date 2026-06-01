@@ -1,0 +1,27 @@
+# Gnosis Forum Dark redesign settings.
+
+# The welcome hero is off by default because this theme already ships a search
+# banner that serves as the homepage welcome. Turn it on only if the search
+# banner is disabled, to avoid two competing welcome blocks.
+show_hero:
+  type: bool
+  default: false
+
+hero_heading:
+  type: string
+  default: "Welcome to the GnosisDAO Forum"
+
+hero_subheading:
+  type: string
+  default: "The home for open discussion across the Gnosis ecosystem. Share ideas, ask questions, debate direction, and shape what comes next."
+
+dao_tracker_url:
+  type: string
+  default: "https://gnosisdaodocs.vercel.app/docs/Dashboard"
+
+# Comma-separated category slugs, in the order they should appear in the top bar.
+# Adjust these to match the real slugs in your Discourse install.
+category_slugs:
+  type: list
+  default: "general|governance|updates|onboarding"
+  list_type: compact

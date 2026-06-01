@@ -1,3 +1,9 @@
 en:
   theme_metadata:
     description: "May_2026_update_v2"
+    settings:
+      show_hero: "Show the welcome hero block on the categories homepage. Leave off if the search banner is enabled, to avoid two welcome blocks."
+      hero_heading: "Hero heading text."
+      hero_subheading: "Hero sub-heading text."
+      dao_tracker_url: "URL for the DAO Tracker link shown on the right of the top category bar. Leave blank to hide it."
+      category_slugs: "Category slugs shown as links in the top bar, in display order. Capitalised automatically for the label."

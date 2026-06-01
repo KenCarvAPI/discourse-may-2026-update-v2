@@ -11,7 +11,27 @@
   "modifiers": {
     "serialize_topic_excerpts": true
   },
+  "assets": {
+    "general": "assets/category-general.svg",
+    "governance": "assets/category-governance.svg",
+    "updates": "assets/category-updates.svg",
+    "onboarding": "assets/category-onboarding.svg"
+  },
   "color_schemes": {
+    "Gnosis Dark": {
+      "primary": "EAF3EC",
+      "secondary": "08120D",
+      "tertiary": "2FD79C",
+      "quaternary": "2FD79C",
+      "header_background": "0E1F18",
+      "header_primary": "EAF3EC",
+      "highlight": "2FD79C",
+      "selected": "13271E",
+      "hover": "13271E",
+      "danger": "E0593A",
+      "success": "2FD79C",
+      "love": "FA6C8D"
+    },
     "gc-dark": {
       "primary": "FAF9F6",
       "secondary": "161219",

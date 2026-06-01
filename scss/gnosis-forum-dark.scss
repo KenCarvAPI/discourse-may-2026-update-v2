@@ -1,0 +1,139 @@
+// =============================================================
+//  Gnosis Forum Dark — redesign layer
+//  Integrates the "forum dark" redesign into this theme: a soft green
+//  page glow, a top category nav bar (injected by the api-initializer),
+//  illustrated category tiles, and a homepage hero.
+//
+//  Adapted from the standalone component to this install's real markup:
+//   - this theme renders categories via the discourse-category-group-boxes
+//     component (`.custom-category-boxes` > `.category-box`), not the native
+//     `categories_boxes` markup, so the tile rules target the custom wrapper.
+//   - the brand heading font (Unica77LL) and the existing floating
+//     `#main-outlet` card are kept; we do not re-import Google fonts or
+//     restyle the card.
+//  Imported last (see desktop.scss / mobile.scss) so it wins on equal
+//  specificity.
+// =============================================================
+
+:root {
+  --gn-mint: #2fd79c;
+}
+
+// ---------- Page tint + soft green glow ----------
+// The full-screen .background-container sits above the body background, so the
+// glow is painted there rather than on <body>.
+html .background-container {
+  background:
+    radial-gradient(
+      1100px 460px at 50% -140px,
+      rgba(47, 215, 156, 0.12),
+      transparent 70%
+    ),
+    var(--secondary);
+}
+
+// ---------- Top category bar (injected by the api-initializer) ----------
+.gn-topnav {
+  border-bottom: 1px solid rgba(var(--primary-rgb), 0.12);
+  background: rgba(var(--secondary-rgb), 0.65);
+  backdrop-filter: blur(8px);
+}
+.gn-topnav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 24px;
+  flex-wrap: wrap;
+}
+.gn-topnav-link {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: rgba(var(--primary-rgb), 0.62);
+  padding: 7px 13px;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.06);
+  }
+  &.active {
+    color: var(--gn-mint);
+    background: rgba(47, 215, 156, 0.1);
+  }
+}
+.gn-topnav-ext {
+  margin-left: auto;
+}
+
+// ---------- Homepage hero (off by default) ----------
+.gn-hero {
+  text-align: center;
+  max-width: 700px;
+  margin: 6px auto 36px;
+
+  h1 {
+    font-family: "Unica77LL", sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 0 12px;
+  }
+  p {
+    color: var(--primary-medium-high);
+    font-size: 16px;
+    max-width: 580px;
+    margin: 0 auto;
+  }
+  @media (max-width: 820px) {
+    h1 {
+      font-size: 30px;
+    }
+  }
+}
+
+// ---------- Illustrated category tiles ----------
+// Swap the per-category logo for the matched illustration on the four canonical
+// categories. Only tagged boxes (gn-cat-<slug>, added by the JS) are touched,
+// so any other category keeps its normal icon. If your real slugs differ,
+// update both the `category_slugs` setting and the four blocks below.
+.custom-category-boxes .category-box[class*="gn-cat-"] {
+  .category-logo {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    border-radius: 12px !important;
+    background-color: #0f2b22 !important;
+    background-size: cover !important;
+    background-position: center !important;
+
+    // hide the default icon / image so the illustration shows through
+    .d-icon,
+    svg,
+    img {
+      display: none !important;
+    }
+  }
+
+  .category-box-inner {
+    grid-template-columns: 56px 1fr !important;
+    align-items: center !important;
+  }
+}
+
+.custom-category-boxes .gn-cat-general .category-logo {
+  background-image: url($general) !important;
+}
+.custom-category-boxes .gn-cat-governance .category-logo {
+  background-image: url($governance) !important;
+}
+.custom-category-boxes .gn-cat-updates .category-logo {
+  background-image: url($updates) !important;
+}
+.custom-category-boxes .gn-cat-onboarding .category-logo {
+  background-image: url($onboarding) !important;
+}
