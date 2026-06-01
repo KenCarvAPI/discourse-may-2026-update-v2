@@ -179,6 +179,19 @@ html .background-container {
   background-image: url($updates);
 }
 
+// ---------- Uniform card heading color ----------
+// Real category boxes render the heading as a colored category badge/link, so
+// Onboarding (knowledge-base) and Updates (announcements) picked up their green
+// category color while the plain-text injected cards stayed cream. Force every
+// card heading to --primary so all four read the same neutral white style.
+.custom-category-boxes .category-box .category-box-heading,
+.custom-category-boxes .category-box .category-box-heading a,
+.custom-category-boxes .category-box .category-box-heading .badge-category__name,
+.custom-category-boxes .category-box h3,
+.custom-category-boxes .category-box h3 a {
+  color: var(--primary) !important;
+}
+
 // ---------- Hide subcategory tiles on specific category pages ----------
 // On these category pages the discourse-category-group-boxes component renders
 // a row of subcategory tiles (Knowledge Base: Support, Archive). Hide that box
