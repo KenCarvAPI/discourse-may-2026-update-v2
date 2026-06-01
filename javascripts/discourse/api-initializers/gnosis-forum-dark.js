@@ -54,35 +54,11 @@ export default apiInitializer("1.8.0", (api) => {
       return;
     }
 
-    // `type: list` settings reach JS as a pipe-delimited string in most
-    // Discourse versions (some expose an array). Handle both.
-    const raw = settings.category_slugs;
-    const slugs = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    // Resolve each slug to its real category URL (which includes the id).
-    // A bare /c/<slug> link does not always route, which is why the Governance
-    // link did not navigate; /c/<slug>/<id> is the canonical, reliable form.
-    const site = api.container.lookup("service:site");
-    const categories = (site && site.categories) || [];
-    const urlForSlug = (slug) => {
-      const c = categories.find(
-        (cat) => cat && cat.slug === slug && !cat.parent_category_id
-      );
-      return c ? c.url || `/c/${c.slug}/${c.id}` : `/c/${slug}`;
-    };
-
     const bar = document.createElement("nav");
     bar.id = NAV_ID;
     bar.className = "gn-topnav";
 
     let html = '<div class="gn-topnav-inner">';
-    slugs.forEach((slug) => {
-      html += `<a class="gn-topnav-link" data-gn-slug="${slug}" href="${urlForSlug(
-        slug
-      )}">${labelFor(slug)}</a>`;
-    });
     if (settings.dao_tracker_url) {
       html += `<a class="gn-topnav-link gn-topnav-ext" href="${settings.dao_tracker_url}" target="_blank" rel="noopener">DAO Tracker ↗</a>`;
     }
@@ -229,6 +205,32 @@ export default apiInitializer("1.8.0", (api) => {
     });
   }
 
+  // On the Governance category page the category-group-boxes component renders
+  // all three governance subcategories (GIPs, Closed Proposals, Governance
+  // Resources). We surface only Governance Resources, so tag that tile with
+  // .gn-keep-box; the SCSS hides the rest. Matches on the subcategory slug
+  // (…/c/governance/<slug>…) with a heading-text fallback so a slug rename
+  // doesn't silently hide everything.
+  function pruneGovernanceBoxes() {
+    if (!document.body.classList.contains("category-governance")) {
+      return;
+    }
+    const grid = document.querySelector(".custom-category-boxes");
+    if (!grid) {
+      return;
+    }
+    grid.querySelectorAll(".category-box").forEach((box) => {
+      const link = box.matches('a[href*="/c/"]')
+        ? box
+        : box.querySelector('a[href*="/c/"]');
+      const href = (link && link.getAttribute("href")) || "";
+      const keep =
+        /\/c\/governance\/[^/?#]*resource/i.test(href) ||
+        /governance\s*resource/i.test(box.textContent || "");
+      box.classList.toggle("gn-keep-box", keep);
+    });
+  }
+
   // Relabel the native left sidebar category links so they match the rest of
   // the theme (e.g. "Knowledge Base" -> "Onboarding"). Discourse renders the
   // real category name there; we swap only the visible text, keeping the link.
@@ -302,6 +304,7 @@ export default apiInitializer("1.8.0", (api) => {
       syncActiveNav();
       decorateSidebar();
       decorateSearchBanner();
+      pruneGovernanceBoxes();
 
       const router = api.container.lookup("service:router");
       const route = router && router.currentRouteName;

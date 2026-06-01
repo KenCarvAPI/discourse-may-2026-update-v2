@@ -52,9 +52,7 @@ html .background-container {
 
 // ---------- Top category bar (injected by the api-initializer) ----------
 .gn-topnav {
-  border-bottom: 1px solid rgba(var(--primary-rgb), 0.12);
-  background: rgba(var(--secondary-rgb), 0.65);
-  backdrop-filter: blur(8px);
+  background: transparent;
 }
 .gn-topnav-inner {
   max-width: 1100px;
@@ -183,13 +181,22 @@ html .background-container {
 
 // ---------- Hide subcategory tiles on specific category pages ----------
 // On these category pages the discourse-category-group-boxes component renders
-// a row of subcategory tiles (Governance: GIPs, Closed Proposals, Governance
-// Resources; Knowledge Base: Support, Archive). Hide that box group so the
-// page goes straight to the topic list.
+// a row of subcategory tiles (Knowledge Base: Support, Archive). Hide that box
+// group so the page goes straight to the topic list.
 body.category-general .custom-category-boxes,
-body.category-governance .custom-category-boxes,
 body.category-knowledge-base .custom-category-boxes {
   display: none !important;
+}
+
+// On the Governance page that same component renders GIPs, Closed Proposals,
+// and Governance Resources. We surface ONLY the Governance Resources tile here.
+// Hide every tile by default (so the others never flash in), then reveal just
+// the one the JS tags with .gn-keep-box.
+body.category-governance .custom-category-boxes .category-box {
+  display: none !important;
+}
+body.category-governance .custom-category-boxes .category-box.gn-keep-box {
+  display: block !important;
 }
 
 // ---------- Tighten the top of those subcategory pages ----------
