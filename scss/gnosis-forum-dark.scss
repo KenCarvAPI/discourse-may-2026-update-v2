@@ -365,22 +365,20 @@ body.category-knowledge-base {
 // ---------- Category page headers: Onboarding + Updates ----------
 // When you click into Onboarding (/c/knowledge-base) or Updates
 // (/c/announcements) the .category-heading banner title is relabelled in JS
-// (decorateCategoryHeading) to match the sidebar. Here we colour that title to
-// the same swatch colour the sidebar squares use — Onboarding = purple,
-// Updates = blue — so the identity is consistent from the sidebar through to
-// the category page. Keyed on the body.category-<slug> class Discourse sets;
-// the inner selectors cover both the modern badge markup and older class names.
+// (decorateCategoryHeading) to match the sidebar. Here we recolour the badge's
+// coloured square (.badge-category__bg) to the same swatch colour the sidebar
+// squares use — Onboarding = purple, Updates = blue — rather than the raw
+// Discourse category colour (the grey CFCBC0 it would otherwise show). The
+// title text itself is left plain (default --primary), matching the sidebar
+// where only the square is coloured. Keyed on the body.category-<slug> class
+// Discourse sets.
 body.category-knowledge-base .category-heading {
-  .badge-category__name,
-  .category-heading__badge,
-  .category-title {
-    color: #8d62d6 !important;
+  .badge-category__bg {
+    background: #8d62d6 !important;
   }
 }
 body.category-announcements .category-heading {
-  .badge-category__name,
-  .category-heading__badge,
-  .category-title {
-    color: #3a8cb8 !important;
+  .badge-category__bg {
+    background: #3a8cb8 !important;
   }
 }
