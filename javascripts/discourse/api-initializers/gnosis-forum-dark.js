@@ -14,9 +14,12 @@ export default apiInitializer("1.8.0", (api) => {
   const HERO_ID = "gn-hero";
 
   // Real category slug -> card label + subtitle.
-  //   general / governance      kept as-is
+  //   general                   kept as-is
+  //   dao                       shown as "Governance" (its display name)
   //   knowledge-base            shown as "Onboarding"
   //   announcements             shown as "Updates"
+  // NOTE: the Governance category's real slug on this install is `dao`
+  // (id 20, /c/dao), so it is keyed here under `dao`, not `governance`.
   // If a slug differs on your install, change the key here, the
   // `category_slugs` setting, and the matching .gn-cat-<slug> rule in the SCSS.
   const CARDS = {
@@ -24,7 +27,7 @@ export default apiInitializer("1.8.0", (api) => {
       label: "General",
       sub: "General discussion on technical and community topics.",
     },
-    governance: {
+    dao: {
       label: "Governance",
       sub: "Open governance: propose, debate and vote GIPs.",
     },
@@ -512,7 +515,7 @@ export default apiInitializer("1.8.0", (api) => {
       const cta = document.createElement("p");
       cta.className = "gn-banner-cta";
       cta.innerHTML =
-        'Idea? <a href="/new-topic?category=governance">Start a new topic to share it.</a>';
+        'Idea? <a href="/new-topic?category=dao">Start a new topic to share it.</a>';
       wrap.appendChild(cta);
     }
   }

@@ -144,14 +144,16 @@ html .background-container {
 // communication, Staff, etc.). The JS tags every box with gn-cat-<slug>;
 // hide any tagged box that is not one of the four we want.
 .custom-category-boxes
-  .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-governance):not(.gn-cat-knowledge-base):not(.gn-cat-announcements) {
+  .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-dao):not(.gn-cat-knowledge-base):not(.gn-cat-announcements) {
   display: none !important;
 }
 
 // ---------- Illustrated category tiles ----------
 // Swap the per-category logo for the matched illustration on the four cards.
-// Real slugs: general, governance, knowledge-base (shown as Onboarding),
-// announcements (shown as Updates). Only tagged boxes (gn-cat-<slug>, added by
+// Real slugs: general, dao (shown as Governance), knowledge-base (shown as
+// Onboarding), announcements (shown as Updates). The $governance asset is the
+// Governance illustration; it is keyed to the real `dao` slug. Only tagged
+// boxes (gn-cat-<slug>, added by
 // the JS) are touched. If a slug differs on your install, update the
 // `category_slugs` setting, the CARDS map in the JS, and the blocks below.
 .custom-category-boxes .category-box[class*="gn-cat-"] {
@@ -189,7 +191,7 @@ html .background-container {
 .custom-category-boxes .gn-cat-general .category-box-inner::before {
   background-image: url($general);
 }
-.custom-category-boxes .gn-cat-governance .category-box-inner::before {
+.custom-category-boxes .gn-cat-dao .category-box-inner::before {
   background-image: url($governance);
 }
 .custom-category-boxes .gn-cat-knowledge-base .category-box-inner::before {
