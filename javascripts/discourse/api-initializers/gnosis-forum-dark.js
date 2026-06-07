@@ -26,7 +26,7 @@ export default apiInitializer("1.8.0", (api) => {
     },
     governance: {
       label: "Governance",
-      sub: "Open governance: every member can propose, debate, and vote GIPs.",
+      sub: "Open governance: propose, debate and vote GIPs.",
     },
     "knowledge-base": {
       label: "Onboarding",
@@ -34,7 +34,7 @@ export default apiInitializer("1.8.0", (api) => {
     },
     announcements: {
       label: "Updates",
-      sub: "Official announcements and the latest from across the DAO.",
+      sub: "The latest from across the DAO.",
     },
   };
 
@@ -58,12 +58,26 @@ export default apiInitializer("1.8.0", (api) => {
     bar.id = NAV_ID;
     bar.className = "gn-topnav";
 
-    let html = '<div class="gn-topnav-inner">';
+    // External quick-links, left-aligned. DAO Tracker keeps its place on the
+    // right (.gn-topnav-ext pushes it there via margin-left:auto). These were
+    // previously a separate "community utility bar" above the category list.
+    const extLink = (href, label, extraClass = "") =>
+      `<a class="gn-topnav-link${extraClass ? " " + extraClass : ""}"` +
+      ` href="${href}" target="_blank" rel="noopener noreferrer">` +
+      `${label}<span class="gn-topnav-arrow" aria-hidden="true">↗</span></a>`;
+
+    const links = [
+      extLink("https://dao-docs.vercel.app", "Docs"),
+      extLink("https://snapshot.org/#/gnosis.eth", "Snapshot"),
+      extLink("https://gno.now", "Treasury"),
+    ];
     if (settings.dao_tracker_url) {
-      html += `<a class="gn-topnav-link gn-topnav-ext" href="${settings.dao_tracker_url}" target="_blank" rel="noopener">DAO Tracker ↗</a>`;
+      links.push(
+        extLink(settings.dao_tracker_url, "DAO Tracker", "gn-topnav-ext")
+      );
     }
-    html += "</div>";
-    bar.innerHTML = html;
+
+    bar.innerHTML = `<div class="gn-topnav-inner">${links.join("")}</div>`;
 
     header.insertAdjacentElement("afterend", bar);
   }
@@ -420,10 +434,31 @@ export default apiInitializer("1.8.0", (api) => {
     );
     const url = (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
       "/c/announcements/34";
+    // Announcements category colour, so the cloned row's swatch matches the
+    // real category rather than the Onboarding (knowledge-base) grey it was
+    // cloned from. Falls back to the known live value.
+    const color = `#${(cat && cat.color) || "9EB83B"}`;
 
     updates = onboarding.cloneNode(true);
+    // The clone carries Onboarding's category id, ember id and description
+    // title; repoint every one of them at announcements so the link routes
+    // there and reads correctly.
+    if (updates.hasAttribute("data-category-id") && cat) {
+      updates.setAttribute("data-category-id", String(cat.id));
+    }
     const link = updates.querySelector(".sidebar-section-link") || updates;
+    link.removeAttribute("id");
     link.setAttribute("href", url);
+    link.setAttribute("title", (CARDS.announcements && CARDS.announcements.sub) || "");
+    // Recolour the category swatch (prefix square) to the announcements colour.
+    const prefix = link.querySelector(".sidebar-section-link-prefix");
+    if (prefix) {
+      prefix.style.color = color;
+    }
+    const square = link.querySelector(".prefix-square");
+    if (square) {
+      square.style.background = `linear-gradient(90deg, ${color} 50%, ${color} 50%)`;
+    }
     link.classList.remove("active");
     link.removeAttribute("aria-current");
     const textEl =
@@ -450,8 +485,8 @@ export default apiInitializer("1.8.0", (api) => {
     }
 
     const h1 = wrap.querySelector("h1");
-    if (h1 && h1.textContent.trim() !== "Welcome to Gnosis") {
-      h1.textContent = "Welcome to Gnosis";
+    if (h1 && h1.textContent.trim() !== "Welcome to the GnosisDAO Forum") {
+      h1.textContent = "Welcome to the GnosisDAO Forum";
     }
 
     // First text paragraph becomes the subhead; hide any others (e.g. the old
