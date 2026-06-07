@@ -231,13 +231,19 @@ body.category-knowledge-base .custom-category-boxes {
   display: none !important;
 }
 
-// On the Governance page that same component renders GIPs, Closed Proposals,
-// and Governance Resources. We surface ONLY the Governance Resources tile here.
-// Hide every tile by default (so the others never flash in), then reveal just
-// the one the JS tags with .gn-keep-box.
+// On the Governance page (its real slug is `dao`, display name "Governance")
+// that same component renders GIPs, Closed Proposals, and Governance Resources.
+// We surface ONLY the Governance Resources tile plus an injected Delegate
+// Communication tile (a top-level category, so it never renders here on its
+// own — the JS clones the Resources tile and re-points it). Hide every tile by
+// default (so the others never flash in), then reveal just the ones the JS
+// tags with .gn-keep-box. Both `category-dao` and `category-governance` are
+// matched so the rule survives a slug change.
+body.category-dao .custom-category-boxes .category-box,
 body.category-governance .custom-category-boxes .category-box {
   display: none !important;
 }
+body.category-dao .custom-category-boxes .category-box.gn-keep-box,
 body.category-governance .custom-category-boxes .category-box.gn-keep-box {
   display: block !important;
 }
@@ -246,6 +252,7 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
 // With the subcategory box group hidden, the navigation controls left a large
 // empty band before the topic list. Pull the content up on these pages.
 body.category-general,
+body.category-dao,
 body.category-governance,
 body.category-knowledge-base {
   .navigation-container {

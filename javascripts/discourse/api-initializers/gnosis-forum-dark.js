@@ -205,30 +205,154 @@ export default apiInitializer("1.8.0", (api) => {
     });
   }
 
-  // On the Governance category page the category-group-boxes component renders
-  // all three governance subcategories (GIPs, Closed Proposals, Governance
-  // Resources). We surface only Governance Resources, so tag that tile with
-  // .gn-keep-box; the SCSS hides the rest. Matches on the subcategory slug
-  // (…/c/governance/<slug>…) with a heading-text fallback so a slug rename
+  // The top-level Delegate Communication category. It is NOT a subcategory of
+  // Governance, so the category-group-boxes component never renders a tile for
+  // it on the Governance page — we inject one (see ensureDelegateTile). The id
+  // is a fallback; the live category record is preferred when available.
+  const DELEGATE = {
+    slug: "delegate-communication",
+    id: 33,
+    name: "Delegate Communication",
+    color: "00A6C4",
+    sub: "Updates and coordination from Gnosis delegates.",
+    logo: "/uploads/default/original/2X/a/a7735e46f625fa6694685b4a4d67d701743034fe.png",
+  };
+
+  // On the Governance category page (real slug `dao`, display name
+  // "Governance") the category-group-boxes component renders the three
+  // governance subcategories (GIPs, Closed Proposals, Governance Resources).
+  // We surface ONLY Governance Resources, then inject a Delegate Communication
+  // tile beside it; the SCSS hides every tile we don't tag with .gn-keep-box.
+  // Matches on the subcategory slug (…/c/dao/<slug>…) with a heading-text
+  // fallback, and accepts the legacy `governance` slug too, so a slug change
   // doesn't silently hide everything.
   function pruneGovernanceBoxes() {
-    if (!document.body.classList.contains("category-governance")) {
+    if (
+      !document.body.classList.contains("category-dao") &&
+      !document.body.classList.contains("category-governance")
+    ) {
       return;
     }
     const grid = document.querySelector(".custom-category-boxes");
     if (!grid) {
       return;
     }
+
+    let resourcesBox = null;
     grid.querySelectorAll(".category-box").forEach((box) => {
+      if (box.classList.contains("gn-delegate-tile")) {
+        return;
+      }
       const link = box.matches('a[href*="/c/"]')
         ? box
         : box.querySelector('a[href*="/c/"]');
       const href = (link && link.getAttribute("href")) || "";
       const keep =
-        /\/c\/governance\/[^/?#]*resource/i.test(href) ||
+        /\/c\/(?:dao|governance)\/[^/?#]*resource/i.test(href) ||
         /governance\s*resource/i.test(box.textContent || "");
       box.classList.toggle("gn-keep-box", keep);
+      if (keep) {
+        resourcesBox = box;
+      }
     });
+
+    ensureDelegateTile(grid, resourcesBox);
+  }
+
+  // Clone the (native) Governance Resources tile so the injected Delegate
+  // Communication tile inherits the component's exact markup and styling, then
+  // re-point its link, name, logo, and category id. Tagged .gn-keep-box so the
+  // SCSS reveals it; the marker class is intentionally NOT gn-cat-* so the
+  // homepage "show only four cards" rule doesn't hide it.
+  function ensureDelegateTile(grid, templateBox) {
+    if (!templateBox || grid.querySelector(".gn-delegate-tile")) {
+      return;
+    }
+
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    const cat = categories.find(
+      (c) => c && c.slug === DELEGATE.slug && !c.parent_category_id
+    );
+    const url =
+      (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
+      `/c/${DELEGATE.slug}/${DELEGATE.id}`;
+    const logo =
+      (cat && cat.uploaded_logo && cat.uploaded_logo.url) || DELEGATE.logo;
+    const id = (cat && cat.id) || DELEGATE.id;
+    const color = (cat && cat.color) || DELEGATE.color;
+
+    const box = templateBox.cloneNode(true);
+    box.className = box.className.replace(/\bcategory-box-\S+/g, "");
+    box.classList.add(
+      "category-box",
+      `category-box-${DELEGATE.slug}`,
+      "gn-delegate-tile",
+      "gn-injected",
+      "gn-keep-box"
+    );
+
+    // Re-point every link (the box is itself an <a>, plus the inner
+    // .parent-box-link) and the component's click-routing data attributes.
+    const retarget = (el) => {
+      if (el.hasAttribute("href")) {
+        el.setAttribute("href", url);
+      }
+      if (el.hasAttribute("data-url")) {
+        el.setAttribute("data-url", url);
+      }
+      if (el.hasAttribute("data-category-id")) {
+        el.setAttribute("data-category-id", id);
+      }
+    };
+    retarget(box);
+    box.querySelectorAll("[href], [data-url], [data-category-id]").forEach(
+      retarget
+    );
+
+    // Swap the visible name (component markup: .category-box-heading > a > h3).
+    const nameEl =
+      box.querySelector(".category-box-heading h3") ||
+      box.querySelector(".category-box-heading a") ||
+      box.querySelector(".category-box-heading") ||
+      box.querySelector("h3");
+    if (nameEl) {
+      nameEl.textContent = DELEGATE.name;
+    }
+
+    // Recolor the logo tile and swap its image to the Delegate logo.
+    const logoEl = box.querySelector(".category-logo");
+    if (logoEl) {
+      logoEl.setAttribute("style", `background-color: #${color}`);
+      logoEl.classList.remove("no-logo-present");
+      const abbr = logoEl.querySelector(".category-abbreviation");
+      if (abbr) {
+        abbr.remove();
+      }
+    }
+    let img = box.querySelector(".category-logo img") || box.querySelector("img");
+    if (!img && logoEl) {
+      img = document.createElement("img");
+      logoEl.appendChild(img);
+    }
+    if (img) {
+      img.setAttribute("src", logo);
+      img.removeAttribute("srcset");
+      img.setAttribute("alt", DELEGATE.name);
+      img.setAttribute("width", "256");
+      img.setAttribute("height", "256");
+    }
+
+    // Replace the carried-over Resources description with the Delegate copy.
+    const descEl =
+      box.querySelector(".description p") ||
+      box.querySelector(".description") ||
+      box.querySelector(".category-box-description");
+    if (descEl) {
+      descEl.textContent = DELEGATE.sub;
+    }
+
+    templateBox.insertAdjacentElement("afterend", box);
   }
 
   // Relabel the native left sidebar category links so they match the rest of
