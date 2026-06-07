@@ -12,14 +12,18 @@ import { apiInitializer } from "discourse/lib/api";
 export default apiInitializer("1.8.0", (api) => {
   const NAV_ID = "gn-topnav";
   const HERO_ID = "gn-hero";
-  // Knowledge Base "support folder": support-tagged topics are pulled out of the
-  // KB topic list and surfaced under an injected "Support" pill (see
-  // pruneSupportTopics / ensureSupportTab). Slug is hardcoded to match the SCSS;
-  // the tag is configurable via the support_tag setting.
+  // Knowledge Base "Support folder": Support is a real subcategory of Knowledge
+  // Base (slug `support` under `knowledge-base`). The theme hides KB subcategory
+  // tiles, and the parent KB list shows subcategory topics by default — so the
+  // Support topics cluttered the main list with no way to reach them on their
+  // own. We surface the subcategory under an injected "Support" pill and prune
+  // its topics from the parent list (see ensureSupportTab / pruneSupportTopics).
+  // The ids are fallbacks; the live category records are preferred when present.
   const KB_SLUG = "knowledge-base";
+  const KB_ID = 32;
+  const SUPPORT_SLUG = "support";
+  const SUPPORT_ID = 8;
   const SUPPORT_TAB_ID = "gn-support-tab";
-  const supportTag = () =>
-    String(settings.support_tag || "").trim().toLowerCase();
 
   // Real category slug -> card label + subtitle.
   //   general                   kept as-is
@@ -459,6 +463,15 @@ export default apiInitializer("1.8.0", (api) => {
     }
     const link = updates.querySelector(".sidebar-section-link") || updates;
     link.removeAttribute("id");
+    // The clone copies the `ember-view` class but NOT Ember's LinkTo click
+    // listener, so clicks fall through to a hard browser navigation. Discourse's
+    // global click interceptor (intercept-click.js) deliberately ignores any
+    // <a class="ember-view"> that is not also a .d-link, so without this the
+    // Updates link does a full page reload — which drops the ?preview_theme_id
+    // param and bounces you back to the default (old) theme. Strip the stale
+    // marker and add .d-link so the interceptor SPA-routes the click instead.
+    link.classList.remove("ember-view");
+    link.classList.add("d-link");
     link.setAttribute("href", url);
     link.setAttribute("title", (CARDS.announcements && CARDS.announcements.sub) || "");
     // Recolour the category swatch (prefix square) to the announcements colour.
@@ -569,96 +582,77 @@ export default apiInitializer("1.8.0", (api) => {
     }
   }
 
-  // ----- Knowledge Base "support folder" -------------------------------------
-  // Treat the `support` tag as a dedicated section: support-tagged topics are
-  // hidden from the main KB topic list and reached only through an injected
-  // "Support" pill that opens the support tag view. The tag view itself shows
-  // them in full (it IS the folder), so hiding is skipped there.
+  // ----- Knowledge Base "Support folder" -------------------------------------
+  // Surface the Support subcategory under an injected "Support" pill and prune
+  // its topics from the parent KB list. The Support subcategory page itself is
+  // never pruned (it IS the folder).
 
-  // The KB category record (top-level, slug knowledge-base), or null until the
-  // site categories have loaded.
-  function knowledgeBaseCat() {
+  function findCategory(pred) {
     const site = api.container.lookup("service:site");
     const categories = (site && site.categories) || [];
-    return (
-      categories.find(
-        (c) => c && c.slug === KB_SLUG && !c.parent_category_id
-      ) || null
+    return categories.find((c) => c && pred(c)) || null;
+  }
+
+  function kbId() {
+    const cat = findCategory((c) => c.slug === KB_SLUG && !c.parent_category_id);
+    return (cat && cat.id) || KB_ID;
+  }
+
+  // The Support subcategory record (slug `support`, parent = Knowledge Base).
+  function supportCat() {
+    const parent = String(kbId());
+    return findCategory(
+      (c) =>
+        c.slug === SUPPORT_SLUG && String(c.parent_category_id) === parent
     );
   }
 
-  // Tag view URL, scoped to Knowledge Base when the category id is known
-  // (/tags/c/<slug>/<id>/<tag>), else the site-wide tag page (/tag/<tag>).
-  function supportTagUrl() {
-    const tag = supportTag();
-    const cat = knowledgeBaseCat();
-    return cat ? `/tags/c/${KB_SLUG}/${cat.id}/${tag}` : `/tag/${tag}`;
+  function supportCatId() {
+    const cat = supportCat();
+    return (cat && cat.id) || SUPPORT_ID;
   }
 
-  // True when the current route is the support tag view (site-wide or the
-  // KB-scoped /tags/c/... form). Matches on the trailing path segment so it is
-  // independent of the category id.
-  function onSupportTagView() {
-    const tag = supportTag();
-    if (!tag) {
-      return false;
-    }
-    const path = window.location.pathname
-      .replace(/[?#].*$/, "")
-      .replace(/\/+$/, "");
-    if (!/\/tags?(\/|$)/.test(path)) {
-      return false;
-    }
-    const last = decodeURIComponent(path.split("/").filter(Boolean).pop() || "");
-    return last.toLowerCase() === tag;
+  function supportUrl() {
+    return `/c/${KB_SLUG}/${SUPPORT_SLUG}/${supportCatId()}`;
   }
 
   function onKbCategory() {
     return document.body.classList.contains("category-knowledge-base");
   }
 
-  function rowHasTag(row, tag) {
-    const tags = row.querySelectorAll(
-      ".discourse-tags .discourse-tag, a.discourse-tag, [data-tag-name]"
+  // True on the Support subcategory page (/c/knowledge-base/support/...).
+  function onSupportView() {
+    return new RegExp(`/c/${KB_SLUG}/${SUPPORT_SLUG}(?:[/?#]|$)`).test(
+      window.location.pathname
     );
-    for (const t of tags) {
-      const name = (
-        t.getAttribute("data-tag-name") ||
-        t.textContent ||
-        ""
-      )
-        .trim()
-        .toLowerCase();
-      if (name === tag) {
-        return true;
-      }
-      const href = t.getAttribute("href") || "";
-      if (new RegExp(`/tag/${tag}(?:[/?#]|$)`).test(href)) {
-        return true;
-      }
-    }
-    return false;
   }
 
-  // Hide support-tagged rows on the main KB topic list (Latest/Top/etc.). Skips
-  // the support tag view, where those topics are the whole point.
+  // A topic row belongs to Support if its category badge links to the Support
+  // subcategory (or carries its category id).
+  function rowInSupport(row, id) {
+    return !!row.querySelector(
+      `[data-category-id="${id}"], a[href*="/c/${KB_SLUG}/${SUPPORT_SLUG}/"]`
+    );
+  }
+
+  // Hide Support-subcategory rows on the main KB topic list (Latest/Top/etc.).
+  // Skipped on the Support page, where those topics are the whole point.
   function pruneSupportTopics() {
-    const tag = supportTag();
-    if (!tag || !onKbCategory() || onSupportTagView()) {
+    if (!onKbCategory() || onSupportView()) {
       return;
     }
+    const id = String(supportCatId());
     document.querySelectorAll(".topic-list-item").forEach((row) => {
-      row.classList.toggle("gn-support-topic", rowHasTag(row, tag));
+      row.classList.toggle("gn-support-topic", rowInSupport(row, id));
     });
   }
 
-  // Inject a "Support" pill into the category nav that opens the support tag
-  // view. Cloned from a native pill so it inherits the theme's nav styling;
-  // re-added on each page change (Ember re-renders the list) and marked active
-  // while on the support view.
+  // Inject a "Support" pill into the category nav that opens the Support
+  // subcategory. Cloned from a native pill so it inherits the theme's nav
+  // styling; re-added on each page change (Ember re-renders the list) and marked
+  // active while on the Support page.
   function ensureSupportTab() {
-    const tag = supportTag();
-    if (!tag || (!onKbCategory() && !onSupportTagView())) {
+    if (!onKbCategory() && !onSupportView()) {
       return;
     }
     const pills = document.querySelector(
@@ -689,8 +683,8 @@ export default apiInitializer("1.8.0", (api) => {
     }
 
     const a = li.querySelector("a") || li;
-    a.setAttribute("href", supportTagUrl());
-    a.classList.toggle("active", onSupportTagView());
+    a.setAttribute("href", supportUrl());
+    a.classList.toggle("active", onSupportView());
   }
 
   api.onPageChange(() => {
