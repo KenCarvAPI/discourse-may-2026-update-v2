@@ -434,10 +434,10 @@ export default apiInitializer("1.8.0", (api) => {
     );
     const url = (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
       "/c/announcements/34";
-    // Announcements category colour, so the cloned row's swatch matches the
-    // real category rather than the Onboarding (knowledge-base) grey it was
-    // cloned from. Falls back to the known live value.
-    const color = `#${(cat && cat.color) || "9EB83B"}`;
+    // Swatch colour for the cloned Updates row. We use the homepage card's
+    // blue (matching the Updates illustration) rather than the raw announcements
+    // category colour; the SCSS enforces the same value with !important.
+    const color = "#3a8cb8";
 
     updates = onboarding.cloneNode(true);
     // The clone carries Onboarding's category id, ember id and description

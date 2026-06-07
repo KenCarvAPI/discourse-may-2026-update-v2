@@ -59,33 +59,53 @@ html .background-container {
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 24px;
+  gap: 26px;
+  padding: 9px 24px;
   flex-wrap: wrap;
 }
-// Neutral dark-grey pill buttons. `a:link` / `a:visited` carry the theme's
-// mint link colour at (0,1,1) specificity, so we use `.gn-topnav a.gn-topnav-link`
-// plus !important to keep every state grey rather than green.
+// Plain, professional text links (no pill). `a:link` / `a:visited` carry the
+// theme's mint link colour at (0,1,1) specificity, so we qualify with
+// `.gn-topnav a.gn-topnav-link` plus !important to keep them a calm neutral
+// that lifts to full strength on hover.
 .gn-topnav a.gn-topnav-link {
-  font-size: 14.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--primary) !important;
-  background: rgba(var(--primary-rgb), 0.08);
-  padding: 7px 13px;
-  border-radius: 10px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  padding: 4px 1px;
+  background: transparent;
+  border-radius: 0;
   text-decoration: none;
   white-space: nowrap;
+  color: var(--primary-high) !important;
+  transition: color 0.15s ease;
 
   &:link,
   &:visited {
-    color: var(--primary) !important;
+    color: var(--primary-high) !important;
   }
 
   &:hover,
   &:focus,
   &.active {
     color: var(--primary) !important;
-    background: rgba(var(--primary-rgb), 0.16);
+  }
+
+  .gn-topnav-arrow {
+    font-size: 11px;
+    opacity: 0.55;
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  &:hover .gn-topnav-arrow,
+  &:focus .gn-topnav-arrow {
+    opacity: 0.9;
+    transform: translate(1px, -1px);
   }
 }
 .gn-topnav-ext {
@@ -294,9 +314,6 @@ body.category-knowledge-base {
   .list-container .navigation-container + * {
     margin-top: 0 !important;
   }
-  .community-utility-bar {
-    margin-top: 0.25rem !important;
-  }
 }
 
 // ---------- Hide specific categories from the left sidebar ----------
@@ -308,4 +325,28 @@ body.category-knowledge-base {
     a.sidebar-section-link[href*="/c/delegate-communic"]
   ) {
   display: none !important;
+}
+
+// ---------- Sidebar swatches: Onboarding + Updates ----------
+// Recolour the left-sidebar category squares to match their homepage card
+// illustrations — Onboarding = purple, Updates = blue — rather than the raw
+// Discourse category colour. The square is .prefix-square (Discourse sets its
+// background inline; the colour is also carried on .sidebar-section-link-prefix),
+// so we override both with !important to win over that inline style and the
+// JS swatch recolour on the cloned Updates row.
+.sidebar-section-link[href*="/c/knowledge-base"] {
+  .sidebar-section-link-prefix {
+    color: #8d62d6 !important;
+  }
+  .prefix-square {
+    background: #8d62d6 !important;
+  }
+}
+.sidebar-section-link[href*="/c/announcements"] {
+  .sidebar-section-link-prefix {
+    color: #3a8cb8 !important;
+  }
+  .prefix-square {
+    background: #3a8cb8 !important;
+  }
 }
