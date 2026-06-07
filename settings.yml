@@ -25,10 +25,3 @@ category_slugs:
   type: list
   default: "general|dao|knowledge-base|announcements"
   list_type: compact
-
-# Within Knowledge Base, topics carrying this tag are pulled out of the main
-# topic list and surfaced under an injected "Support" tab (which opens the tag
-# view) instead. Leave blank to disable the split.
-support_tag:
-  type: string
-  default: "support"

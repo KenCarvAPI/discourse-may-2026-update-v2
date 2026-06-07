@@ -7,4 +7,3 @@ en:
       hero_subheading: "Hero sub-heading text."
       dao_tracker_url: "URL for the DAO Tracker link shown on the right of the top category bar. Leave blank to hide it."
       category_slugs: "Category slugs shown as links in the top bar, in display order. Capitalised automatically for the label."
-      support_tag: "Tag whose topics are pulled out of the Knowledge Base topic list and surfaced under an injected 'Support' tab. Leave blank to disable the split."

@@ -274,11 +274,12 @@ html .background-container {
   }
 }
 
-// ---------- Knowledge Base: pull "support" topics into a Support tab ----------
-// Support-tagged topics are removed from the main KB topic list (the JS tags
-// their rows .gn-support-topic) and reached only through the injected "Support"
-// nav pill, which opens the support tag view. The tag view itself is excluded
-// in JS (onSupportTagView), so this rule only ever fires on the main KB list.
+// ---------- Knowledge Base: pull Support-subcategory topics into a tab --------
+// The KB parent list shows subcategory topics by default, so Support topics
+// cluttered the main view. The JS tags those rows .gn-support-topic (matched by
+// the Support subcategory) and they are reached instead via the injected
+// "Support" nav pill. The Support subcategory page itself is excluded in JS
+// (onSupportView), so this rule only ever fires on the main KB list.
 body.category-knowledge-base .topic-list-item.gn-support-topic {
   display: none !important;
 }
