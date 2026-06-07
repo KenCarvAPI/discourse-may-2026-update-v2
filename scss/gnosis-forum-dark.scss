@@ -217,8 +217,38 @@ html .background-container {
   .description {
     font-size: 0.83rem !important;
     line-height: 1.5 !important;
-    margin: 0.2rem 0 0 !important;
+    margin: 0.35rem 0 0 !important;
     color: #b8b6b7 !important;
+  }
+}
+
+// ---------- Let the homepage cards show their full subtitle ----------
+// The category-group-boxes component caps each card (max-height: 160px;
+// overflow: hidden) and clamps the description (.description max-height: 3em;
+// .description p -webkit-line-clamp: 2). At this theme's font size our curated
+// subtitles run to ~3 lines, so the last line was being clipped mid-text. These
+// are short, deliberate lines — show them in full and give the card breathing
+// room. Scoped to the four illustrated cards (gn-cat-*), so the Governance-page
+// subcategory tiles are untouched.
+.custom-category-boxes .category-box[class*="gn-cat-"] {
+  max-height: none !important;
+  overflow: visible !important;
+
+  .category-box-inner {
+    padding-top: 18px !important;
+    padding-bottom: 18px !important;
+  }
+
+  .description {
+    max-height: none !important;
+    overflow: visible !important;
+
+    p {
+      display: block !important;
+      overflow: visible !important;
+      -webkit-line-clamp: unset !important;
+      line-clamp: unset !important;
+    }
   }
 }
 
