@@ -12,6 +12,14 @@ import { apiInitializer } from "discourse/lib/api";
 export default apiInitializer("1.8.0", (api) => {
   const NAV_ID = "gn-topnav";
   const HERO_ID = "gn-hero";
+  // Knowledge Base "support folder": support-tagged topics are pulled out of the
+  // KB topic list and surfaced under an injected "Support" pill (see
+  // pruneSupportTopics / ensureSupportTab). Slug is hardcoded to match the SCSS;
+  // the tag is configurable via the support_tag setting.
+  const KB_SLUG = "knowledge-base";
+  const SUPPORT_TAB_ID = "gn-support-tab";
+  const supportTag = () =>
+    String(settings.support_tag || "").trim().toLowerCase();
 
   // Real category slug -> card label + subtitle.
   //   general                   kept as-is
@@ -477,6 +485,47 @@ export default apiInitializer("1.8.0", (api) => {
     onboarding.parentNode.insertBefore(updates, onboarding.nextElementSibling);
   }
 
+  // Relabel the category-page header so it matches the rest of the theme's
+  // identity: on /c/knowledge-base the banner title reads "Onboarding", on
+  // /c/announcements it reads "Updates" — the same labels used on the sidebar
+  // and homepage cards. Discourse renders the real category name in the
+  // .category-heading badge; we swap only the visible text (and keep the
+  // screen-reader heading in sync). The swatch colour is applied in SCSS,
+  // keyed on the body.category-<slug> class Discourse already sets.
+  function decorateCategoryHeading() {
+    const heading = document.querySelector(".category-heading");
+    if (!heading) {
+      return;
+    }
+    const slug = Object.keys(CARDS).find((s) =>
+      document.body.classList.contains(`category-${s}`)
+    );
+    if (!slug) {
+      return;
+    }
+    const cfg = CARDS[slug];
+
+    // Visible title (modern badge markup, with older-class fallbacks).
+    const nameEl =
+      heading.querySelector(".badge-category__name") ||
+      heading.querySelector(".category-title") ||
+      heading.querySelector(".category-heading__badge");
+    if (!nameEl) {
+      return;
+    }
+    const realName = nameEl.textContent.trim();
+    if (realName !== cfg.label) {
+      nameEl.textContent = cfg.label;
+    }
+
+    // Keep the visually-hidden discovery heading (used by screen readers) in
+    // sync by swapping the real name for the label where it appears.
+    const srHeading = document.getElementById("topic-list-heading");
+    if (srHeading && realName && srHeading.textContent.includes(realName)) {
+      srHeading.textContent = srHeading.textContent.replace(realName, cfg.label);
+    }
+  }
+
   // Force the search-banner opener copy and add a "start a topic" CTA under the
   // search box. The headline/subhead can also be set natively in the
   // discourse-search-banner component settings; this keeps the copy in the
@@ -520,14 +569,141 @@ export default apiInitializer("1.8.0", (api) => {
     }
   }
 
+  // ----- Knowledge Base "support folder" -------------------------------------
+  // Treat the `support` tag as a dedicated section: support-tagged topics are
+  // hidden from the main KB topic list and reached only through an injected
+  // "Support" pill that opens the support tag view. The tag view itself shows
+  // them in full (it IS the folder), so hiding is skipped there.
+
+  // The KB category record (top-level, slug knowledge-base), or null until the
+  // site categories have loaded.
+  function knowledgeBaseCat() {
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    return (
+      categories.find(
+        (c) => c && c.slug === KB_SLUG && !c.parent_category_id
+      ) || null
+    );
+  }
+
+  // Tag view URL, scoped to Knowledge Base when the category id is known
+  // (/tags/c/<slug>/<id>/<tag>), else the site-wide tag page (/tag/<tag>).
+  function supportTagUrl() {
+    const tag = supportTag();
+    const cat = knowledgeBaseCat();
+    return cat ? `/tags/c/${KB_SLUG}/${cat.id}/${tag}` : `/tag/${tag}`;
+  }
+
+  // True when the current route is the support tag view (site-wide or the
+  // KB-scoped /tags/c/... form). Matches on the trailing path segment so it is
+  // independent of the category id.
+  function onSupportTagView() {
+    const tag = supportTag();
+    if (!tag) {
+      return false;
+    }
+    const path = window.location.pathname
+      .replace(/[?#].*$/, "")
+      .replace(/\/+$/, "");
+    if (!/\/tags?(\/|$)/.test(path)) {
+      return false;
+    }
+    const last = decodeURIComponent(path.split("/").filter(Boolean).pop() || "");
+    return last.toLowerCase() === tag;
+  }
+
+  function onKbCategory() {
+    return document.body.classList.contains("category-knowledge-base");
+  }
+
+  function rowHasTag(row, tag) {
+    const tags = row.querySelectorAll(
+      ".discourse-tags .discourse-tag, a.discourse-tag, [data-tag-name]"
+    );
+    for (const t of tags) {
+      const name = (
+        t.getAttribute("data-tag-name") ||
+        t.textContent ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+      if (name === tag) {
+        return true;
+      }
+      const href = t.getAttribute("href") || "";
+      if (new RegExp(`/tag/${tag}(?:[/?#]|$)`).test(href)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Hide support-tagged rows on the main KB topic list (Latest/Top/etc.). Skips
+  // the support tag view, where those topics are the whole point.
+  function pruneSupportTopics() {
+    const tag = supportTag();
+    if (!tag || !onKbCategory() || onSupportTagView()) {
+      return;
+    }
+    document.querySelectorAll(".topic-list-item").forEach((row) => {
+      row.classList.toggle("gn-support-topic", rowHasTag(row, tag));
+    });
+  }
+
+  // Inject a "Support" pill into the category nav that opens the support tag
+  // view. Cloned from a native pill so it inherits the theme's nav styling;
+  // re-added on each page change (Ember re-renders the list) and marked active
+  // while on the support view.
+  function ensureSupportTab() {
+    const tag = supportTag();
+    if (!tag || (!onKbCategory() && !onSupportTagView())) {
+      return;
+    }
+    const pills = document.querySelector(
+      ".list-controls .nav-pills, .navigation-container .nav-pills, ul.nav-pills"
+    );
+    if (!pills) {
+      return;
+    }
+
+    let li = document.getElementById(SUPPORT_TAB_ID);
+    if (!li) {
+      const template =
+        pills.querySelector("li:not(.navigation-toggle)") ||
+        pills.querySelector("li");
+      if (!template) {
+        return;
+      }
+      li = template.cloneNode(true);
+      li.id = SUPPORT_TAB_ID;
+      const a = li.querySelector("a") || li;
+      a.removeAttribute("id");
+      a.removeAttribute("aria-current");
+      a.classList.remove("active");
+      a.setAttribute("title", "Knowledge Base support topics");
+      // Drop any icon/badge carried over from the cloned pill; leave plain text.
+      a.textContent = "Support";
+      pills.appendChild(li);
+    }
+
+    const a = li.querySelector("a") || li;
+    a.setAttribute("href", supportTagUrl());
+    a.classList.toggle("active", onSupportTagView());
+  }
+
   api.onPageChange(() => {
     // defer one frame so the route has rendered
     window.requestAnimationFrame(() => {
       ensureTopNav();
       syncActiveNav();
       decorateSidebar();
+      decorateCategoryHeading();
       decorateSearchBanner();
       pruneGovernanceBoxes();
+      ensureSupportTab();
+      pruneSupportTopics();
 
       const router = api.container.lookup("service:router");
       const route = router && router.currentRouteName;

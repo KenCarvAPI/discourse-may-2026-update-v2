@@ -274,6 +274,15 @@ html .background-container {
   }
 }
 
+// ---------- Knowledge Base: pull "support" topics into a Support tab ----------
+// Support-tagged topics are removed from the main KB topic list (the JS tags
+// their rows .gn-support-topic) and reached only through the injected "Support"
+// nav pill, which opens the support tag view. The tag view itself is excluded
+// in JS (onSupportTagView), so this rule only ever fires on the main KB list.
+body.category-knowledge-base .topic-list-item.gn-support-topic {
+  display: none !important;
+}
+
 // ---------- Hide subcategory tiles on specific category pages ----------
 // On these category pages the discourse-category-group-boxes component renders
 // a row of subcategory tiles (Knowledge Base: Support, Archive). Hide that box
@@ -350,5 +359,28 @@ body.category-knowledge-base {
   }
   .prefix-square {
     background: #3a8cb8 !important;
+  }
+}
+
+// ---------- Category page headers: Onboarding + Updates ----------
+// When you click into Onboarding (/c/knowledge-base) or Updates
+// (/c/announcements) the .category-heading banner title is relabelled in JS
+// (decorateCategoryHeading) to match the sidebar. Here we colour that title to
+// the same swatch colour the sidebar squares use — Onboarding = purple,
+// Updates = blue — so the identity is consistent from the sidebar through to
+// the category page. Keyed on the body.category-<slug> class Discourse sets;
+// the inner selectors cover both the modern badge markup and older class names.
+body.category-knowledge-base .category-heading {
+  .badge-category__name,
+  .category-heading__badge,
+  .category-title {
+    color: #8d62d6 !important;
+  }
+}
+body.category-announcements .category-heading {
+  .badge-category__name,
+  .category-heading__badge,
+  .category-title {
+    color: #3a8cb8 !important;
   }
 }
