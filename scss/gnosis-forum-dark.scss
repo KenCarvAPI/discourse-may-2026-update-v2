@@ -304,47 +304,109 @@ body.category-knowledge-base .topic-list-item.gn-support-topic {
   display: none !important;
 }
 
-// ---------- Knowledge Base: injected "Support" subcategory card ---------------
-// A prominent card at the top of the KB post list (below the header/nav, above
-// the topic list) that opens the Support subcategory. Injected by the JS
-// (ensureSupportCard); styled to sit alongside the theme's category boxes.
-a.gn-support-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin: 0 0 1em;
-  padding: 14px 16px;
-  border: 1px solid rgba(var(--primary-rgb), 0.18);
-  background: rgba(var(--primary-rgb), 0.04);
-  border-radius: 0.75em;
+// ============================================================================
+//  Resource card — shared design (SINGLE SOURCE OF TRUTH)
+//  The KB "Support" card (.gn-support-card — a hand-built <a>) and the
+//  Governance resource tiles (.category-box.gn-keep-box — discourse-category-
+//  group-boxes component markup) are the SAME visual object: a dark rounded
+//  "resource button" with a mint-tinted rounded-square icon badge, a bold
+//  title, a muted subtitle, and a trailing arrow. Their MARKUP differs (custom
+//  spans vs component classes) and the Governance tiles must override the
+//  component, so the shared look lives in these mixins and each markup
+//  @includes them — edit the design HERE only. $imp adds !important for the
+//  override-the-component case (the Governance tiles); the Support card needs
+//  no !important because it has no competing rules.
+// ============================================================================
+$gn-card-sub: #b8b6b7; // muted secondary text, shared by both subtitles
+
+@mixin gn-card-chrome($imp: false) {
+  $i: if($imp, " !important", "");
+  padding: 14px 16px#{$i};
+  border: 1px solid rgba(var(--primary-rgb), 0.18)#{$i};
+  background: rgba(var(--primary-rgb), 0.04)#{$i};
+  border-radius: 0.75em#{$i};
   text-decoration: none;
   transition:
     background-color 120ms ease-in-out,
     border-color 120ms ease-in-out,
     box-shadow 120ms ease-in-out;
+}
+@mixin gn-card-chrome-hover($imp: false) {
+  $i: if($imp, " !important", "");
+  background: rgba(var(--primary-rgb), 0.07)#{$i};
+  border-color: var(--tertiary)#{$i};
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1)#{$i};
+}
+@mixin gn-card-row($imp: false) {
+  $i: if($imp, " !important", "");
+  display: flex#{$i};
+  align-items: center;
+  gap: 14px#{$i};
+  min-width: 0;
+}
+@mixin gn-card-icon($imp: false) {
+  $i: if($imp, " !important", "");
+  flex: 0 0 auto;
+  width: 44px#{$i};
+  height: 44px#{$i};
+  display: flex#{$i};
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(var(--tertiary-rgb), 0.15)#{$i};
+  color: var(--tertiary);
+}
+@mixin gn-card-glyph {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+@mixin gn-card-title($imp: false) {
+  $i: if($imp, " !important", "");
+  margin: 0#{$i};
+  font-family: "Unica77LL", sans-serif;
+  font-weight: 650#{$i};
+  font-size: 1rem#{$i};
+  line-height: 1.2#{$i};
+  color: var(--primary)#{$i};
+  text-decoration: none;
+}
+@mixin gn-card-sub($imp: false) {
+  $i: if($imp, " !important", "");
+  margin: 0#{$i};
+  font-size: 0.83rem#{$i};
+  line-height: 1.4#{$i};
+  color: #{$gn-card-sub}#{$i};
+}
+@mixin gn-card-arrow($imp: false) {
+  $i: if($imp, " !important", "");
+  color: var(--primary-medium-high)#{$i};
+  font-size: 1.1rem#{$i};
+  transition:
+    transform 120ms ease-in-out,
+    color 120ms ease-in-out;
+}
+
+// ---------- KB "Support" card (full-width variant, keeps a description) -------
+// Injected by the JS (ensureSupportCard) at the top of the KB post list. Uses
+// the shared resource-card design above. Its TWO intentional differences from
+// the Governance tiles: (1) it spans full width as a block in the list flow,
+// and (2) it keeps the wrapping description line beneath the title.
+a.gn-support-card {
+  @include gn-card-chrome;
+  @include gn-card-row;
+  margin: 0 0 1em; // (1) full-width block in the list flow
 
   &:hover,
   &:focus {
-    background: rgba(var(--primary-rgb), 0.07);
-    border-color: var(--tertiary);
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    @include gn-card-chrome-hover;
   }
 
   .gn-support-card__icon {
-    flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: rgba(var(--tertiary-rgb), 0.15);
-    color: var(--tertiary);
-
+    @include gn-card-icon;
     svg {
-      width: 24px;
-      height: 24px;
-      display: block;
+      @include gn-card-glyph;
     }
   }
 
@@ -356,25 +418,18 @@ a.gn-support-card {
   }
 
   .gn-support-card__title {
-    font-family: "Unica77LL", sans-serif;
-    font-weight: 650;
-    font-size: 1rem;
-    line-height: 1.2;
-    color: var(--primary) !important;
+    @include gn-card-title;
   }
 
+  // (2) Subtitle is allowed to wrap — the description line is kept for Support.
   .gn-support-card__sub {
-    font-size: 0.83rem;
-    line-height: 1.4;
-    color: #b8b6b7;
+    @include gn-card-sub;
   }
 
   .gn-support-card__arrow {
+    @include gn-card-arrow;
     margin-left: auto;
     padding-left: 12px;
-    color: var(--primary-medium-high);
-    font-size: 1.1rem;
-    transition: transform 120ms ease-in-out, color 120ms ease-in-out;
   }
 
   &:hover .gn-support-card__arrow,
@@ -431,81 +486,59 @@ body.category-governance .custom-category-boxes {
 
 body.category-dao .custom-category-boxes .category-box.gn-keep-box,
 body.category-governance .custom-category-boxes .category-box.gn-keep-box {
+  // Shared resource-card design (single source — see the mixins above). $imp:true
+  // adds !important so these win over the discourse-category-group-boxes
+  // component's own .category-box / .category-logo styling.
+  @include gn-card-chrome($imp: true);
   display: block !important; // the <a> is the card; .category-box-inner is the row
   flex: 1 1 0 !important; // share the line equally — both buttons on one line
   min-width: 0; // allow shrink so the text ellipsises instead of overflowing
   position: relative;
   margin: 0 !important;
-  padding: 14px 44px 14px 16px !important; // right room for the arrow
-  border: 1px solid rgba(var(--primary-rgb), 0.18) !important;
-  background: rgba(var(--primary-rgb), 0.04) !important;
-  border-radius: 0.75em !important;
-  text-decoration: none;
-  transition:
-    background-color 120ms ease-in-out,
-    border-color 120ms ease-in-out,
-    box-shadow 120ms ease-in-out;
+  padding-right: 44px !important; // room for the absolute arrow (::after) below
 
   &:hover,
   &:focus {
-    background: rgba(var(--primary-rgb), 0.07) !important;
-    border-color: var(--tertiary) !important;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1) !important;
+    @include gn-card-chrome-hover($imp: true);
   }
 
-  // Hover arrow (mirrors .gn-support-card__arrow).
+  // Trailing arrow — same visual as the Support card's arrow (shared mixin),
+  // positioned absolutely because the component markup has no arrow element to
+  // place as a flex item.
   &::after {
     content: "→";
     position: absolute;
     top: 50%;
     right: 16px;
     transform: translateY(-50%);
-    color: var(--primary-medium-high);
-    font-size: 1.1rem;
-    transition:
-      transform 120ms ease-in-out,
-      color 120ms ease-in-out;
+    @include gn-card-arrow($imp: true);
   }
   &:hover::after,
   &:focus::after {
     transform: translateY(-50%) translateX(2px);
-    color: var(--primary);
+    color: var(--primary) !important;
   }
 
   .category-box-inner {
-    display: flex !important;
-    align-items: center;
-    gap: 14px !important;
+    @include gn-card-row($imp: true);
     padding: 0 !important;
     min-height: 0;
-    min-width: 0;
 
     &::before {
       content: none !important; // no illustrated-tile pseudo (that's homepage only)
     }
   }
 
-  // Icon tile — EXACT copy of the Support card's .gn-support-card__icon: a
-  // 44px mint-tinted rounded square with the logo centred at 24px (the override
-  // beats the component's inline background-color on .category-logo).
+  // Icon badge — the component renders the logo inside .category-logo; the
+  // shared mixin turns it into the mint-tinted rounded square (overriding the
+  // component's inline background-color), with the glyph centred at 24px.
   .category-logo {
-    flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
+    @include gn-card-icon($imp: true);
     margin: 0 !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: rgba(var(--tertiary-rgb), 0.15) !important;
-    color: var(--tertiary);
     overflow: hidden;
 
     img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-      display: block;
+      @include gn-card-glyph;
     }
     .category-abbreviation {
       color: var(--tertiary);
@@ -520,19 +553,14 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
     min-width: 0; // enable ellipsis on the title/description
   }
 
-  // Title — single line, exactly like .gn-support-card__title.
+  // Title — single line here (the Governance tiles sit two-up), so add the
+  // ellipsis on top of the shared title style.
   .category-box-heading {
     margin: 0 !important;
 
     a,
     h3 {
-      margin: 0 !important;
-      font-family: "Unica77LL", sans-serif;
-      font-weight: 650 !important;
-      font-size: 1rem !important;
-      line-height: 1.2 !important;
-      color: var(--primary) !important;
-      text-decoration: none;
+      @include gn-card-title($imp: true);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -544,17 +572,15 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
     }
   }
 
-  // Subtitle — single line, exactly like .gn-support-card__sub.
+  // Subtitle — single line for the two-up Governance tiles (ellipsis added on
+  // top of the shared subtitle style; the Support card lets its copy wrap).
   .description {
     margin: 0 !important;
     max-height: none !important;
     overflow: hidden !important;
 
     p {
-      margin: 0 !important;
-      font-size: 0.83rem !important;
-      line-height: 1.4 !important;
-      color: #b8b6b7 !important;
+      @include gn-card-sub($imp: true);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
