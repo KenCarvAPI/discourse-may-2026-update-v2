@@ -38,7 +38,7 @@ export default apiInitializer("1.8.0", (api) => {
   //
   //   general          kept as-is
   //   dao              shown as "Governance" (its display name)
-  //   knowledge-base   shown as "Onboarding"
+  //   knowledge-base   shown as "Knowledge Base" (its real name)
   //   announcements    shown as "Updates"
   // NOTE: the Governance category's real slug on this install is `dao` (/c/dao),
   // keyed here under `dao`, not `governance`. If a slug differs on your install,
@@ -56,7 +56,7 @@ export default apiInitializer("1.8.0", (api) => {
       id: 20,
     },
     "knowledge-base": {
-      label: "Onboarding",
+      label: "Knowledge Base",
       sub: "New to GnosisDAO? Start here.",
       id: 32,
     },
@@ -514,7 +514,7 @@ export default apiInitializer("1.8.0", (api) => {
   }
 
   // Relabel the category-page header so it matches the rest of the theme's
-  // identity: on /c/knowledge-base the banner title reads "Onboarding", on
+  // identity: on /c/knowledge-base the banner title reads "Knowledge Base", on
   // /c/announcements it reads "Updates" — the same labels used on the sidebar
   // and homepage cards. Discourse renders the real category name in the
   // .category-heading badge; we swap only the visible text (and keep the
