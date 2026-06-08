@@ -601,16 +601,21 @@ body.category-knowledge-base {
     }
   }
 
-  // (b) Category-page header square. On this install (Discourse 3.5) the swatch
-  // renders as a .badge-category-bg / .badge-category__bg element carrying an
-  // inline background-color (the raw category colour, e.g. the grey #CFCBC0 for
-  // Knowledge Base); newer markup also drives it from the --category-badge-color
-  // custom property. Recolour every variant to the brand swatch, scoped to the
-  // category's own page-title header so no other category's badge is touched.
-  // The title text is left plain (default --primary), matching the sidebar.
+  // (b) Category-page chrome swatches. On this install (Discourse 3.5) the
+  // category colour appears as the raw category colour (e.g. Knowledge Base's
+  // grey #CFCBC0, Announcements' lime green) in three page-chrome spots: the
+  // title-header swatch, the breadcrumb "drop" badge, and any box-style badge
+  // border. It is carried as an inline background-color on .badge-category-bg /
+  // .badge-category__bg, as the --category-badge-color custom property, and as a
+  // border-color on box-style badges. Recolour every variant to the brand
+  // swatch, scoped to this category's own page chrome (the .select-kit option
+  // list is portaled to <body>, outside these containers, so the breadcrumb
+  // dropdown's other categories are NOT affected). The title text is left plain
+  // (default --primary), matching the sidebar where only the square is coloured.
   body.category-#{$slug} {
     .category-heading,
-    .category-title-header {
+    .category-title-header,
+    .category-breadcrumb {
       .badge-category__bg,
       .badge-category-bg {
         background: $color !important;
@@ -618,6 +623,7 @@ body.category-knowledge-base {
 
       .badge-category {
         --category-badge-color: #{$color} !important;
+        border-color: $color !important;
       }
     }
   }
