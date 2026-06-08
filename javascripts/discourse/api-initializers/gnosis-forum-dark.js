@@ -129,7 +129,7 @@ export default apiInitializer("1.8.0", (api) => {
       `${label}<span class="gn-topnav-arrow" aria-hidden="true">↗</span></a>`;
 
     const links = [
-      extLink("https://dao-docs.vercel.app", "Docs"),
+      extLink("https://docs.gnosis.io/", "Docs"),
       extLink("https://snapshot.org/#/gnosis.eth", "Snapshot"),
       extLink("https://gno.now", "Treasury"),
     ];

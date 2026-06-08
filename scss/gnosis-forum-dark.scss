@@ -81,14 +81,13 @@ html .background-container {
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 10px;
   padding: 9px 24px;
   flex-wrap: wrap;
 }
-// Plain, professional text links (no pill). `a:link` / `a:visited` carry the
-// theme's mint link colour at (0,1,1) specificity, so we qualify with
-// `.gn-topnav a.gn-topnav-link` plus !important to keep them a calm neutral
-// that lifts to full strength on hover.
+// Simple buttons. `a:link` / `a:visited` carry the theme's mint link colour at
+// (0,1,1) specificity, so we qualify with `.gn-topnav a.gn-topnav-link` plus
+// !important to keep them a calm neutral that lifts to full strength on hover.
 .gn-topnav a.gn-topnav-link {
   display: inline-flex;
   align-items: center;
@@ -97,13 +96,17 @@ html .background-container {
   font-weight: 500;
   letter-spacing: 0.01em;
   line-height: 1;
-  padding: 4px 1px;
-  background: transparent;
-  border-radius: 0;
+  padding: 7px 15px;
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: 999px;
   text-decoration: none;
   white-space: nowrap;
   color: var(--primary-high) !important;
-  transition: color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
 
   &:link,
   &:visited {
@@ -114,6 +117,8 @@ html .background-container {
   &:focus,
   &.active {
     color: var(--primary) !important;
+    background: var(--primary-low);
+    border-color: var(--primary-medium);
   }
 
   .gn-topnav-arrow {
