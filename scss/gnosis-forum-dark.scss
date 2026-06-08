@@ -410,6 +410,146 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
   display: block !important;
 }
 
+// ---------- Governance tiles: match the KB "Support" card style ---------------
+// Restyle the surfaced Governance tiles (.gn-keep-box: Governance Resources +
+// the injected Delegate Communication) to mirror the injected KB Support card —
+// full-width stacked cards with a rounded icon tile (the category logo), a
+// title, a subtitle and a hover arrow. Component markup (gjs):
+//   a.category-box > .category-box-inner > (.category-logo + .category-details
+//   > .category-box-heading + .description). Scoped to the Governance page so
+//   the homepage cards and other category pages are untouched.
+body.category-dao .custom-category-boxes,
+body.category-governance .custom-category-boxes {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75em !important;
+}
+
+body.category-dao .custom-category-boxes .category-box.gn-keep-box,
+body.category-governance .custom-category-boxes .category-box.gn-keep-box {
+  display: block !important; // the <a> is the card; .category-box-inner is the row
+  position: relative;
+  width: 100%;
+  margin: 0 !important;
+  padding: 14px 44px 14px 16px !important; // right room for the arrow
+  border: 1px solid rgba(var(--primary-rgb), 0.18) !important;
+  background: rgba(var(--primary-rgb), 0.04) !important;
+  border-radius: 0.75em !important;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease-in-out,
+    border-color 120ms ease-in-out,
+    box-shadow 120ms ease-in-out;
+
+  &:hover,
+  &:focus {
+    background: rgba(var(--primary-rgb), 0.07) !important;
+    border-color: var(--tertiary) !important;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  // Hover arrow (mirrors .gn-support-card__arrow).
+  &::after {
+    content: "→";
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    color: var(--primary-medium-high);
+    font-size: 1.1rem;
+    transition:
+      transform 120ms ease-in-out,
+      color 120ms ease-in-out;
+  }
+  &:hover::after,
+  &:focus::after {
+    transform: translateY(-50%) translateX(2px);
+    color: var(--primary);
+  }
+
+  .category-box-inner {
+    display: flex !important;
+    align-items: center;
+    gap: 14px !important;
+    padding: 0 !important;
+    min-height: 0;
+
+    &::before {
+      content: none !important; // no illustrated-tile pseudo (that's homepage only)
+    }
+  }
+
+  // Icon tile — keeps each category's own logo/colour, framed like Support.
+  .category-logo {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .category-abbreviation {
+      font-size: 1rem;
+    }
+  }
+
+  .category-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .category-box-heading {
+    margin: 0 !important;
+
+    a,
+    h3 {
+      margin: 0 !important;
+      font-family: "Unica77LL", sans-serif;
+      font-weight: 650 !important;
+      font-size: 1rem !important;
+      line-height: 1.2 !important;
+      color: var(--primary) !important;
+      text-decoration: none;
+    }
+    // Drop any category badge swatch carried in the heading.
+    .badge-category__bg,
+    .badge-wrapper .badge-category__bg {
+      display: none !important;
+    }
+  }
+
+  .description {
+    margin: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+
+    p {
+      margin: 0 !important;
+      font-size: 0.83rem !important;
+      line-height: 1.4 !important;
+      color: #b8b6b7 !important;
+      -webkit-line-clamp: unset !important;
+      line-clamp: unset !important;
+    }
+  }
+
+  // The component can render a nested subcategories list; not wanted in the card.
+  .subcategories {
+    display: none !important;
+  }
+}
+
 // ---------- Tighten the top of those subcategory pages ----------
 // With the subcategory box group hidden, the navigation controls left a large
 // empty band before the topic list. Pull the content up on these pages.
