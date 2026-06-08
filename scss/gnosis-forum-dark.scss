@@ -598,6 +598,26 @@ body.category-knowledge-base {
   display: none !important;
 }
 
+// ---------- Order the sidebar Tags list ----------
+// Discourse orders the sidebar Tags section by usage, so the phases come out
+// scrambled (phase-2, phase-1, … phase-3). Pin a tidy order with flexbox:
+// the phases in sequence, then the rest alphabetically. Scoped to the Tags
+// section so the Categories list above is untouched. Match on the tag link
+// href (/tag/<name>) so it works regardless of the link's other classes.
+[data-section-name="tags"] .sidebar-section-content {
+  display: flex;
+  flex-direction: column;
+}
+
+$gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "grants": 5);
+@each $tag, $pos in $gn-tag-order {
+  .sidebar-section-link-wrapper:has(
+      a.sidebar-section-link[href*="/tag/#{$tag}"]
+    ) {
+    order: $pos;
+  }
+}
+
 // ---------- Category colour cues — all generated from $gn-categories --------
 // Every place a category's brand colour appears in chrome is emitted here from
 // the one map, so all four categories stay in lock-step with their homepage
