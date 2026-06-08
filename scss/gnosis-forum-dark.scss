@@ -620,38 +620,33 @@ body.category-knowledge-base {
     }
   }
 
-  // (b) Category-page chrome swatches. On this install (Discourse 3.5) the
-  // category colour appears as the raw category colour (e.g. Knowledge Base's
-  // grey #CFCBC0, Announcements' lime green) in three page-chrome spots: the
-  // title-header swatch, the breadcrumb "drop" badge, and any box-style badge
-  // border. It is carried as an inline background-color on .badge-category-bg /
-  // .badge-category__bg, as the --category-badge-color custom property, and as a
-  // border-color on box-style badges. Recolour every variant to the brand
-  // swatch, scoped to this category's own page chrome (the .select-kit option
-  // list is portaled to <body>, outside these containers, so the breadcrumb
-  // dropdown's other categories are NOT affected). The title text is left plain
-  // (default --primary), matching the sidebar where only the square is coloured.
+  // (b) Category-page swatches (header + breadcrumb). VERIFIED against the live
+  // DOM (Discourse 3.5.2): the coloured square is .badge-category.--style-square,
+  // painted by its ::before from var(--category-badge-color). Discourse sets that
+  // custom property INLINE on the parent .badge-category__wrapper, to the raw
+  // category colour (e.g. Announcements #9EB83B lime, Knowledge Base #CFCBC0
+  // grey). Overriding the property to the brand colour repaints the ::before to
+  // match. Set it on both the wrapper (where Discourse sets it) and the badge
+  // (so the ::before inherits it). NOTE: the .category-heading__logo tile is a
+  // separate uploaded image, not CSS-colourable. Scoped to .category-heading and
+  // .category-breadcrumb; the select-kit option list is portaled to <body>, so
+  // the breadcrumb dropdown's other categories are untouched.
   body.category-#{$slug} {
     .category-heading,
-    .category-title-header,
     .category-breadcrumb {
-      .badge-category__bg,
-      .badge-category-bg {
-        background: $color !important;
-      }
-
+      .badge-category__wrapper,
       .badge-category {
         --category-badge-color: #{$color} !important;
-        border-color: $color !important;
       }
     }
   }
 
-  // (c) Topic-list category bullet. In mixed lists (Latest/Top) the bullet
-  // otherwise shows the raw category colour; key on the badge link href so each
-  // category's dot matches its card. .badge-wrapper is the <a> carrying /c/<slug>.
-  .topic-list .badge-wrapper.bullet[href*="/c/#{$slug}"] .badge-category__bg,
-  .topic-list .badge-wrapper.bullet[href*="/c/#{$slug}"] .badge-category-bg {
-    background: $color !important;
+  // (c) Topic-list category badge. In mixed lists (e.g. the homepage Latest) the
+  // same .badge-category square shows the raw category colour. The badge wrapper
+  // links to the category, so key on its href to recolour only this category's
+  // dot — same --category-badge-color mechanism as (b).
+  .topic-list .badge-category__wrapper[href*="/c/#{$slug}"],
+  .topic-list .badge-category__wrapper[href*="/c/#{$slug}"] .badge-category {
+    --category-badge-color: #{$color} !important;
   }
 }
