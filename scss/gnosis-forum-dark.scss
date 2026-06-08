@@ -601,13 +601,25 @@ body.category-knowledge-base {
     }
   }
 
-  // (b) Category-page header square. Discourse renders the badge's coloured
-  // square (.badge-category__bg) in the raw category colour; recolour it to the
-  // brand swatch. The title text is left plain (default --primary), matching
-  // the sidebar where only the square is coloured. Keyed on the
-  // body.category-<slug> class Discourse sets.
-  body.category-#{$slug} .category-heading .badge-category__bg {
-    background: $color !important;
+  // (b) Category-page header square. On this install (Discourse 3.5) the swatch
+  // renders as a .badge-category-bg / .badge-category__bg element carrying an
+  // inline background-color (the raw category colour, e.g. the grey #CFCBC0 for
+  // Knowledge Base); newer markup also drives it from the --category-badge-color
+  // custom property. Recolour every variant to the brand swatch, scoped to the
+  // category's own page-title header so no other category's badge is touched.
+  // The title text is left plain (default --primary), matching the sidebar.
+  body.category-#{$slug} {
+    .category-heading,
+    .category-title-header {
+      .badge-category__bg,
+      .badge-category-bg {
+        background: $color !important;
+      }
+
+      .badge-category {
+        --category-badge-color: #{$color} !important;
+      }
+    }
   }
 
   // (c) Topic-list category bullet. In mixed lists (Latest/Top) the bullet
