@@ -292,12 +292,14 @@ html .background-container {
   }
 }
 
-// ---------- Knowledge Base: pull Support-subcategory topics into a tab --------
-// The KB parent list shows subcategory topics by default, so Support topics
-// cluttered the main view. The JS tags those rows .gn-support-topic (matched by
-// the Support subcategory) and they are reached instead via the injected
-// "Support" nav pill. The Support subcategory page itself is excluded in JS
-// (onSupportView), so this rule only ever fires on the main KB list.
+// ---------- Knowledge Base: hide Support topics from the main list (fallback) -
+// The real fix routes the KB list to Discourse's native /none filter, which
+// excludes subcategory topics server-side (see forceKbNoneFilter in the JS), so
+// the main list never contains Support/Archive topics. This rule is only a
+// fallback: in the instant before that redirect lands (or if it can't run), the
+// JS tags any Support-subcategory row .gn-support-topic and we hide it here.
+// The Support subcategory page itself is excluded in JS (onSupportView), so this
+// only ever fires on the main KB list.
 body.category-knowledge-base .topic-list-item.gn-support-topic {
   display: none !important;
 }

@@ -1,4 +1,5 @@
 import { apiInitializer } from "discourse/lib/api";
+import DiscourseURL from "discourse/lib/url";
 
 // Gnosis Forum Dark — DOM enhancements
 // Kept deliberately defensive so it survives Discourse version changes.
@@ -15,12 +16,18 @@ export default apiInitializer("1.8.0", (api) => {
   // Knowledge Base "Support folder": Support is a real subcategory of Knowledge
   // Base (slug `support` under `knowledge-base`). The theme hides KB subcategory
   // tiles, and the parent KB list shows subcategory topics by default — so the
-  // Support topics cluttered the main list with no way to reach them on their
-  // own. We surface the subcategory under an injected "Support" pill and prune
-  // its topics from the parent list (see ensureSupportTab / pruneSupportTopics).
-  // (Knowledge Base's own id lives in the CARDS config below, since it is also
-  // the "Onboarding" card; kbId() reads it from there. The Support subcategory
-  // id is a fallback; the live record is preferred when present.)
+  // Support (and Archive) topics cluttered the main list with no way to reach
+  // them on their own.
+  //   FIX: route every KB parent-category view to Discourse's native /none
+  //   filter (/c/knowledge-base/<id>/none[/l/<order>]), which excludes
+  //   subcategory topics server-side — so the main list shows ONLY KB posts
+  //   (see forceKbNoneFilter / rewriteKbParentLinks). Support is surfaced via an
+  //   injected "Support" pill (ensureSupportTab) that opens its subcategory. The
+  //   CSS row-prune (pruneSupportTopics) is now only a fallback for the instant
+  //   before the redirect lands.
+  // (Knowledge Base's own id lives in the CARDS config below; kbId() reads it
+  // from the live record, falling back to that id. The Support subcategory id is
+  // likewise a fallback; the live record is preferred when present.)
   const KB_SLUG = "knowledge-base";
   const SUPPORT_SLUG = "support";
   const SUPPORT_ID = 8;
@@ -630,6 +637,79 @@ export default apiInitializer("1.8.0", (api) => {
     return document.body.classList.contains("category-knowledge-base");
   }
 
+  // ----- Force the KB main list to exclude subcategory topics -----------------
+  // Knowledge Base lists its subcategory (Support, Archive) topics in the parent
+  // list by default. Discourse has a NATIVE filter for "this category only" —
+  // the `/none` suffix on the category route (/c/<slug>/<id>/none[/l/<order>]),
+  // which the server honours for pagination, search and counts. We route every
+  // KB parent-category view to that /none variant so the main list shows ONLY
+  // Knowledge Base posts; Support/Archive are reached via their own links. This
+  // is the real fix — the CSS row-prune below is just a fallback for the brief
+  // moment before the redirect lands.
+
+  // Canonical KB list URL with subcategories excluded. `listPart` is an optional
+  // trailing list segment such as "/l/top".
+  function kbNoneUrl(listPart = "") {
+    return `/c/${KB_SLUG}/${kbId()}/none${listPart}`;
+  }
+
+  // Match the KB PARENT category route only (…/c/knowledge-base/<id>…), NOT the
+  // Support/Archive subcategories (…/c/knowledge-base/support/…). Returns the
+  // RegExp match (group 1 = existing none|all filter, group 2 = /l/<order>), or
+  // null when the current path is not the KB parent list.
+  function kbParentRouteMatch() {
+    const id = kbId();
+    if (id == null) {
+      return null;
+    }
+    const path = window.location.pathname.replace(/\/+$/, "");
+    return path.match(
+      new RegExp(`^/c/${KB_SLUG}/${id}(?:/(none|all))?((?:/l/[^/?#]+)?)$`)
+    );
+  }
+
+  // Route the KB parent list to its /none variant. Runs first on every page
+  // change; returns true if it triggered a redirect (so the rest of the pass can
+  // be skipped — onPageChange fires again on the new URL).
+  function forceKbNoneFilter() {
+    const m = kbParentRouteMatch();
+    if (!m || m[1]) {
+      // Not the KB parent list, or already /none (or an explicit /all).
+      return false;
+    }
+    const target = kbNoneUrl(m[2] || "");
+    if (DiscourseURL && typeof DiscourseURL.routeTo === "function") {
+      DiscourseURL.routeTo(target);
+    } else {
+      window.location.replace(target);
+    }
+    return true;
+  }
+
+  // Repoint any link to the KB parent category at the /none variant, so clicking
+  // the sidebar row / homepage card / nav pills lands on the filtered list
+  // directly (no redirect flash). Subcategory links (…/support/…, …/archive/…)
+  // are left untouched.
+  function rewriteKbParentLinks(root) {
+    const id = kbId();
+    if (id == null) {
+      return;
+    }
+    const re = new RegExp(
+      `^/c/${KB_SLUG}/${id}(?:/(none|all))?((?:/l/[^/?#]+)?)/?(?:[?#]|$)`
+    );
+    (root || document)
+      .querySelectorAll(`a[href*="/c/${KB_SLUG}/"]`)
+      .forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        const m = href.match(re);
+        if (!m || m[1]) {
+          return; // not the KB parent, or already filtered
+        }
+        a.setAttribute("href", kbNoneUrl(m[2] || ""));
+      });
+  }
+
   // True on the Support subcategory page (/c/knowledge-base/support/...).
   function onSupportView() {
     return new RegExp(`/c/${KB_SLUG}/${SUPPORT_SLUG}(?:[/?#]|$)`).test(
@@ -698,6 +778,13 @@ export default apiInitializer("1.8.0", (api) => {
   }
 
   api.onPageChange(() => {
+    // Force the KB main list to its /none (subcategories-excluded) variant
+    // before anything renders. If this redirects, bail — onPageChange fires
+    // again on the new URL and the work below runs there.
+    if (forceKbNoneFilter()) {
+      return;
+    }
+
     // defer one frame so the route has rendered
     window.requestAnimationFrame(() => {
       ensureTopNav();
@@ -722,6 +809,11 @@ export default apiInitializer("1.8.0", (api) => {
         ensureCards();
       }
       ensureHero(isHome);
+
+      // Run last so it also catches links inside freshly-injected homepage
+      // cards / nav pills / the Support tab: repoint every KB parent-category
+      // link at the /none (subcategories-excluded) variant.
+      rewriteKbParentLinks();
     });
   });
 });
