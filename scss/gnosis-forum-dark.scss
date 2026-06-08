@@ -710,3 +710,27 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
     --category-badge-color: #{$color} !important;
   }
 }
+
+// ---------- Pill-shape the topic-list action & filter controls ----------
+// Match the rounded top-nav pills on the key controls in the discovery header:
+//  - New Topic (#create-topic, the primary button)
+//  - the bulk-select / admin wrench dropdown and the trailing chevron button
+//    (both render as .btn inside the navigation controls)
+//  - the "categories" / "tags" filter dropdowns (.category-drop / .tag-drop,
+//    select-kit combo-boxes whose visible control is .select-kit-header)
+// Scoped to the navigation / breadcrumb containers so unrelated buttons keep
+// their normal shape. !important wins over the core component radius.
+.navigation-container,
+.navigation-controls,
+.list-controls,
+.category-breadcrumb {
+  .btn {
+    border-radius: 999px !important;
+  }
+  .select-kit.combo-box .select-kit-header {
+    border-radius: 999px !important;
+  }
+}
+#create-topic {
+  border-radius: 999px !important;
+}
