@@ -32,6 +32,7 @@ export default apiInitializer("1.8.0", (api) => {
   const SUPPORT_SLUG = "support";
   const SUPPORT_ID = 8;
   const SUPPORT_TAB_ID = "gn-support-tab";
+  const SUPPORT_CARD_ID = "gn-support-card";
 
   // ---- Per-category config: SINGLE SOURCE OF TRUTH (JS side) ----------------
   // Everything the JS needs about a surfaced category, keyed by its REAL slug:
@@ -777,6 +778,61 @@ export default apiInitializer("1.8.0", (api) => {
     a.classList.toggle("active", onSupportView());
   }
 
+  // Inject a "Support" subcategory card at the top of the KB post list (below
+  // the category header / nav, above the topic list). Clicking it opens the
+  // Support subcategory, where the support topics live. Not shown on the Support
+  // page itself. The card lives inside the route-rendered content area, so it is
+  // cleared automatically on navigation; the id guard prevents duplicates.
+  function ensureSupportCard() {
+    if (!onKbCategory() || onSupportView()) {
+      return;
+    }
+    if (document.getElementById(SUPPORT_CARD_ID)) {
+      return;
+    }
+
+    // Anchor: directly before the topic list, else the first child of the
+    // discovery contents container.
+    const list = document.querySelector(".topic-list");
+    const contents = document.querySelector(
+      ".list-container .contents, #main-outlet .contents"
+    );
+    let anchor, position;
+    if (list) {
+      anchor = list;
+      position = "beforebegin";
+    } else if (contents) {
+      anchor = contents;
+      position = "afterbegin";
+    } else {
+      return;
+    }
+
+    const card = document.createElement("a");
+    card.id = SUPPORT_CARD_ID;
+    card.className = "gn-support-card";
+    card.setAttribute("href", supportUrl());
+    card.innerHTML =
+      '<span class="gn-support-card__icon" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"' +
+      ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="9"></circle>' +
+      '<circle cx="12" cy="12" r="3.5"></circle>' +
+      '<line x1="4.9" y1="4.9" x2="9.5" y2="9.5"></line>' +
+      '<line x1="14.5" y1="14.5" x2="19.1" y2="19.1"></line>' +
+      '<line x1="19.1" y1="4.9" x2="14.5" y2="9.5"></line>' +
+      '<line x1="9.5" y1="14.5" x2="4.9" y2="19.1"></line>' +
+      "</svg></span>" +
+      '<span class="gn-support-card__text">' +
+      '<span class="gn-support-card__title">Support</span>' +
+      '<span class="gn-support-card__sub">' +
+      "Need help? Browse the GnosisDAO support channel." +
+      "</span></span>" +
+      '<span class="gn-support-card__arrow" aria-hidden="true">→</span>';
+
+    anchor.insertAdjacentElement(position, card);
+  }
+
   api.onPageChange(() => {
     // Force the KB main list to its /none (subcategories-excluded) variant
     // before anything renders. If this redirects, bail — onPageChange fires
@@ -794,6 +850,7 @@ export default apiInitializer("1.8.0", (api) => {
       decorateSearchBanner();
       pruneGovernanceBoxes();
       ensureSupportTab();
+      ensureSupportCard();
       pruneSupportTopics();
 
       const router = api.container.lookup("service:router");

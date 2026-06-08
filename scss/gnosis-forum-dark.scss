@@ -304,6 +304,86 @@ body.category-knowledge-base .topic-list-item.gn-support-topic {
   display: none !important;
 }
 
+// ---------- Knowledge Base: injected "Support" subcategory card ---------------
+// A prominent card at the top of the KB post list (below the header/nav, above
+// the topic list) that opens the Support subcategory. Injected by the JS
+// (ensureSupportCard); styled to sit alongside the theme's category boxes.
+a.gn-support-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 1em;
+  padding: 14px 16px;
+  border: 1px solid rgba(var(--primary-rgb), 0.18);
+  background: rgba(var(--primary-rgb), 0.04);
+  border-radius: 0.75em;
+  text-decoration: none;
+  transition:
+    background-color 120ms ease-in-out,
+    border-color 120ms ease-in-out,
+    box-shadow 120ms ease-in-out;
+
+  &:hover,
+  &:focus {
+    background: rgba(var(--primary-rgb), 0.07);
+    border-color: var(--tertiary);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .gn-support-card__icon {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(var(--tertiary-rgb), 0.15);
+    color: var(--tertiary);
+
+    svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+  }
+
+  .gn-support-card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .gn-support-card__title {
+    font-family: "Unica77LL", sans-serif;
+    font-weight: 650;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: var(--primary) !important;
+  }
+
+  .gn-support-card__sub {
+    font-size: 0.83rem;
+    line-height: 1.4;
+    color: #b8b6b7;
+  }
+
+  .gn-support-card__arrow {
+    margin-left: auto;
+    padding-left: 12px;
+    color: var(--primary-medium-high);
+    font-size: 1.1rem;
+    transition: transform 120ms ease-in-out, color 120ms ease-in-out;
+  }
+
+  &:hover .gn-support-card__arrow,
+  &:focus .gn-support-card__arrow {
+    transform: translateX(2px);
+    color: var(--primary);
+  }
+}
+
 // ---------- Hide subcategory tiles on specific category pages ----------
 // On these category pages the discourse-category-group-boxes component renders
 // a row of subcategory tiles (Knowledge Base: Support, Archive). Hide that box
