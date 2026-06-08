@@ -72,6 +72,26 @@ html .background-container {
   }
 }
 
+// ---------- Pill-shape the search field ----------
+// Round the search box into a pill in both the homepage search banner
+// (.custom-search-banner-wrap, the discourse-search-banner component) and the
+// header search-menu. .search-input is the wrapper that holds the field plus
+// the search/clear icons; rounding it (and the inner input) gives a clean pill.
+// A little inline padding keeps the glyph and text off the rounded ends.
+.custom-search-banner-wrap .search-input,
+.search-banner .search-input,
+.search-menu .search-input,
+.search-input {
+  border-radius: 999px !important;
+  padding-inline: 12px;
+}
+.custom-search-banner-wrap .search-input input,
+.search-banner .search-input input,
+.search-menu .search-input input,
+.search-input input {
+  border-radius: 999px !important;
+}
+
 // ---------- Top category bar (injected by the api-initializer) ----------
 .gn-topnav {
   background: transparent;
