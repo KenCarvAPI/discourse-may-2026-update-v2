@@ -19,8 +19,11 @@ dao_tracker_url:
   type: string
   default: "https://gnosisdaodocs.vercel.app/docs/Dashboard"
 
-# Comma-separated category slugs, in the order they should appear in the top bar.
-# Adjust these to match the real slugs in your Discourse install.
+# The real category slugs surfaced as homepage cards, in display order.
+# This is the ORDER knob; the per-category label/subtitle/id live in the CARDS
+# map and the colour/illustration in the $gn-categories SCSS map. If you add,
+# remove, or rename a slug here, update those two maps (and the "show only four"
+# :not() chain in scss/gnosis-forum-dark.scss) to match.
 category_slugs:
   type: list
   default: "general|dao|knowledge-base|announcements"

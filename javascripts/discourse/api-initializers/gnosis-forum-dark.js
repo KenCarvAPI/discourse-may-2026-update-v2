@@ -18,38 +18,52 @@ export default apiInitializer("1.8.0", (api) => {
   // Support topics cluttered the main list with no way to reach them on their
   // own. We surface the subcategory under an injected "Support" pill and prune
   // its topics from the parent list (see ensureSupportTab / pruneSupportTopics).
-  // The ids are fallbacks; the live category records are preferred when present.
+  // (Knowledge Base's own id lives in the CARDS config below, since it is also
+  // the "Onboarding" card; kbId() reads it from there. The Support subcategory
+  // id is a fallback; the live record is preferred when present.)
   const KB_SLUG = "knowledge-base";
-  const KB_ID = 32;
   const SUPPORT_SLUG = "support";
   const SUPPORT_ID = 8;
   const SUPPORT_TAB_ID = "gn-support-tab";
 
-  // Real category slug -> card label + subtitle.
-  //   general                   kept as-is
-  //   dao                       shown as "Governance" (its display name)
-  //   knowledge-base            shown as "Onboarding"
-  //   announcements             shown as "Updates"
-  // NOTE: the Governance category's real slug on this install is `dao`
-  // (id 20, /c/dao), so it is keyed here under `dao`, not `governance`.
-  // If a slug differs on your install, change the key here, the
-  // `category_slugs` setting, and the matching .gn-cat-<slug> rule in the SCSS.
+  // ---- Per-category config: SINGLE SOURCE OF TRUTH (JS side) ----------------
+  // Everything the JS needs about a surfaced category, keyed by its REAL slug:
+  //   label  visible name used on cards, sidebar, and category headers
+  //   sub    homepage card subtitle
+  //   id     fallback category id — used ONLY if the live category record can't
+  //          be resolved at runtime (see categoryUrl). Keep it correct as a
+  //          last-resort safety net; null where no fallback is needed.
+  // Brand COLOURS are the SCSS counterpart — see the $gn-categories map in
+  // scss/gnosis-forum-dark.scss. The two maps are keyed by the same slugs.
+  //
+  //   general          kept as-is
+  //   dao              shown as "Governance" (its display name)
+  //   knowledge-base   shown as "Onboarding"
+  //   announcements    shown as "Updates"
+  // NOTE: the Governance category's real slug on this install is `dao` (/c/dao),
+  // keyed here under `dao`, not `governance`. If a slug differs on your install,
+  // change the key here, the `category_slugs` setting, and BOTH the
+  // $gn-categories map and the "show only four" :not() chain in the SCSS.
   const CARDS = {
     general: {
       label: "General",
       sub: "General discussion on technical and community topics.",
+      id: null,
     },
     dao: {
       label: "Governance",
       sub: "Open governance: propose, debate and vote GIPs.",
+      id: 20,
     },
     "knowledge-base": {
       label: "Onboarding",
       sub: "New to GnosisDAO? Start here.",
+      id: 32,
     },
     announcements: {
       label: "Updates",
       sub: "The latest from across the DAO.",
+      id: 34,
     },
   };
 
@@ -57,6 +71,31 @@ export default apiInitializer("1.8.0", (api) => {
   const labelFor = (slug) =>
     (CARDS[slug] && CARDS[slug].label) ||
     slug.split("-").map(cap).join(" ");
+
+  // ----- Category resolution (shared) ----------------------------------------
+  // One place that turns a slug into a live category record / canonical URL, so
+  // every injected element (homepage cards, sidebar Updates row, Delegate tile,
+  // Support pill) resolves the same way instead of re-implementing the lookup.
+
+  function findCategory(pred) {
+    const site = api.container.lookup("service:site");
+    const categories = (site && site.categories) || [];
+    return categories.find((c) => c && pred(c)) || null;
+  }
+
+  // Canonical URL for a top-level category. Prefers the live record; falls back
+  // to the configured id (an explicit override, else CARDS[slug].id), then a
+  // bare /c/<slug>. Canonical form is /c/<slug>/<id> because a bare /c/<slug>
+  // does not always route.
+  function categoryUrl(slug, fallbackId) {
+    const cat = findCategory((c) => c.slug === slug && !c.parent_category_id);
+    if (cat) {
+      return cat.url || `/c/${cat.slug}/${cat.id}`;
+    }
+    const fid =
+      fallbackId != null ? fallbackId : CARDS[slug] && CARDS[slug].id;
+    return fid != null ? `/c/${slug}/${fid}` : `/c/${slug}`;
+  }
 
   function ensureTopNav() {
     if (document.getElementById(NAV_ID)) {
@@ -198,15 +237,6 @@ export default apiInitializer("1.8.0", (api) => {
       }
     });
 
-    const site = api.container.lookup("service:site");
-    const categories = (site && site.categories) || [];
-    const urlForSlug = (slug) => {
-      const c = categories.find(
-        (cat) => cat && cat.slug === slug && !cat.parent_category_id
-      );
-      return c ? c.url || `/c/${c.slug}/${c.id}` : `/c/${slug}`;
-    };
-
     const raw = settings.category_slugs;
     const order = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
       .map((s) => s.trim())
@@ -219,7 +249,7 @@ export default apiInitializer("1.8.0", (api) => {
         const cfg = CARDS[slug] || { label: labelFor(slug), sub: "" };
         box = document.createElement("span");
         box.className = `category-box gn-cat-${slug} gn-injected`;
-        box.innerHTML = `<a href="${urlForSlug(
+        box.innerHTML = `<a href="${categoryUrl(
           slug
         )}"><div class="category-box-inner"><h3 class="category-box-heading">${
           cfg.label
@@ -298,14 +328,10 @@ export default apiInitializer("1.8.0", (api) => {
       return;
     }
 
-    const site = api.container.lookup("service:site");
-    const categories = (site && site.categories) || [];
-    const cat = categories.find(
-      (c) => c && c.slug === DELEGATE.slug && !c.parent_category_id
+    const cat = findCategory(
+      (c) => c.slug === DELEGATE.slug && !c.parent_category_id
     );
-    const url =
-      (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
-      `/c/${DELEGATE.slug}/${DELEGATE.id}`;
+    const url = categoryUrl(DELEGATE.slug, DELEGATE.id);
     const logo =
       (cat && cat.uploaded_logo && cat.uploaded_logo.url) || DELEGATE.logo;
     const id = (cat && cat.id) || DELEGATE.id;
@@ -439,27 +465,22 @@ export default apiInitializer("1.8.0", (api) => {
       return;
     }
 
-    // Missing — resolve the announcements category URL and clone the row.
-    // Canonical form is /c/<slug>/<id> (a bare /c/<slug> does not always
-    // route), so prefer the live category record and fall back to the known id.
-    const site = api.container.lookup("service:site");
-    const categories = (site && site.categories) || [];
-    const cat = categories.find(
-      (c) => c && c.slug === "announcements" && !c.parent_category_id
+    // Missing — resolve the announcements category and clone the row. The URL
+    // and id fall back to CARDS.announcements.id when the live record is absent
+    // (see categoryUrl), so there is no loose hardcoded id here.
+    const cat = findCategory(
+      (c) => c.slug === "announcements" && !c.parent_category_id
     );
-    const url = (cat && (cat.url || `/c/${cat.slug}/${cat.id}`)) ||
-      "/c/announcements/34";
-    // Swatch colour for the cloned Updates row. We use the homepage card's
-    // blue (matching the Updates illustration) rather than the raw announcements
-    // category colour; the SCSS enforces the same value with !important.
-    const color = "#3a8cb8";
+    const url = categoryUrl("announcements");
+    const catId =
+      (cat && cat.id) || (CARDS.announcements && CARDS.announcements.id);
 
     updates = onboarding.cloneNode(true);
     // The clone carries Onboarding's category id, ember id and description
     // title; repoint every one of them at announcements so the link routes
     // there and reads correctly.
-    if (updates.hasAttribute("data-category-id") && cat) {
-      updates.setAttribute("data-category-id", String(cat.id));
+    if (updates.hasAttribute("data-category-id") && catId != null) {
+      updates.setAttribute("data-category-id", String(catId));
     }
     const link = updates.querySelector(".sidebar-section-link") || updates;
     link.removeAttribute("id");
@@ -474,15 +495,9 @@ export default apiInitializer("1.8.0", (api) => {
     link.classList.add("d-link");
     link.setAttribute("href", url);
     link.setAttribute("title", (CARDS.announcements && CARDS.announcements.sub) || "");
-    // Recolour the category swatch (prefix square) to the announcements colour.
-    const prefix = link.querySelector(".sidebar-section-link-prefix");
-    if (prefix) {
-      prefix.style.color = color;
-    }
-    const square = link.querySelector(".prefix-square");
-    if (square) {
-      square.style.background = `linear-gradient(90deg, ${color} 50%, ${color} 50%)`;
-    }
+    // The cloned row carries Onboarding's inline swatch colour; the SCSS
+    // recolours it to the announcements swatch (keyed on the /c/announcements
+    // href, applied with !important) so the colour lives in one place.
     link.classList.remove("active");
     link.removeAttribute("aria-current");
     const textEl =
@@ -585,17 +600,12 @@ export default apiInitializer("1.8.0", (api) => {
   // ----- Knowledge Base "Support folder" -------------------------------------
   // Surface the Support subcategory under an injected "Support" pill and prune
   // its topics from the parent KB list. The Support subcategory page itself is
-  // never pruned (it IS the folder).
-
-  function findCategory(pred) {
-    const site = api.container.lookup("service:site");
-    const categories = (site && site.categories) || [];
-    return categories.find((c) => c && pred(c)) || null;
-  }
+  // never pruned (it IS the folder). Category lookup uses the shared
+  // findCategory / categoryUrl helpers defined near the top.
 
   function kbId() {
     const cat = findCategory((c) => c.slug === KB_SLUG && !c.parent_category_id);
-    return (cat && cat.id) || KB_ID;
+    return (cat && cat.id) || (CARDS[KB_SLUG] && CARDS[KB_SLUG].id);
   }
 
   // The Support subcategory record (slug `support`, parent = Knowledge Base).

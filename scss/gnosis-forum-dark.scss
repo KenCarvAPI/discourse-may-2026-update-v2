@@ -19,6 +19,28 @@
   --gn-mint: #2fd79c;
 }
 
+// ============================================================================
+//  Category identity — SINGLE SOURCE OF TRUTH
+//  Each surfaced category, keyed by its REAL slug, paired with (brand colour,
+//  illustration asset). Every colour cue below — the homepage card illustration
+//  tile, the left-sidebar square, the category-page header square, and the
+//  topic-list bullet — is GENERATED from this one map. To recolour or re-art a
+//  category, edit it HERE only; do not hand-write per-slug colour rules again.
+//
+//  Keep in sync with:
+//   - the CARDS map (labels) in api-initializers/gnosis-forum-dark.js
+//   - the `category_slugs` setting (order shown on the homepage)
+//   - the matching SVG's primary fill (the illustration colour is baked into
+//     the asset, so the colour below should equal the SVG's main fill).
+//  $general/$governance/$onboarding/$updates are the asset vars from about.json.
+// ============================================================================
+$gn-categories: (
+  "general": (#2fd79c, $general),
+  "dao": (#f0934a, $governance),
+  "knowledge-base": (#8d62d6, $onboarding),
+  "announcements": (#3a8cb8, $updates),
+);
+
 // ---------- Page tint + soft green glow ----------
 // The full-screen .background-container sits above the body background, so the
 // glow is painted there rather than on <body>.
@@ -143,6 +165,8 @@ html .background-container {
 // The forum has more categories than we surface (Treasury, Delegate
 // communication, Staff, etc.). The JS tags every box with gn-cat-<slug>;
 // hide any tagged box that is not one of the four we want.
+// NOTE: this :not() chain lists the same four slugs as $gn-categories above —
+// if you add/remove a surfaced card, update the map AND this chain together.
 .custom-category-boxes
   .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-dao):not(.gn-cat-knowledge-base):not(.gn-cat-announcements) {
   display: none !important;
@@ -188,17 +212,11 @@ html .background-container {
   }
 }
 
-.custom-category-boxes .gn-cat-general .category-box-inner::before {
-  background-image: url($general);
-}
-.custom-category-boxes .gn-cat-dao .category-box-inner::before {
-  background-image: url($governance);
-}
-.custom-category-boxes .gn-cat-knowledge-base .category-box-inner::before {
-  background-image: url($onboarding);
-}
-.custom-category-boxes .gn-cat-announcements .category-box-inner::before {
-  background-image: url($updates);
+// Per-card illustration tile — generated from $gn-categories (art = nth 2).
+@each $slug, $cfg in $gn-categories {
+  .custom-category-boxes .gn-cat-#{$slug} .category-box-inner::before {
+    background-image: url(nth($cfg, 2));
+  }
 }
 
 // ---------- Uniform card heading + description ----------
@@ -339,47 +357,42 @@ body.category-knowledge-base {
   display: none !important;
 }
 
-// ---------- Sidebar swatches: Onboarding + Updates ----------
-// Recolour the left-sidebar category squares to match their homepage card
-// illustrations — Onboarding = purple, Updates = blue — rather than the raw
-// Discourse category colour. The square is .prefix-square (Discourse sets its
-// background inline; the colour is also carried on .sidebar-section-link-prefix),
-// so we override both with !important to win over that inline style and the
-// JS swatch recolour on the cloned Updates row.
-.sidebar-section-link[href*="/c/knowledge-base"] {
-  .sidebar-section-link-prefix {
-    color: #8d62d6 !important;
-  }
-  .prefix-square {
-    background: #8d62d6 !important;
-  }
-}
-.sidebar-section-link[href*="/c/announcements"] {
-  .sidebar-section-link-prefix {
-    color: #3a8cb8 !important;
-  }
-  .prefix-square {
-    background: #3a8cb8 !important;
-  }
-}
+// ---------- Category colour cues — all generated from $gn-categories --------
+// Every place a category's brand colour appears in chrome is emitted here from
+// the one map, so all four categories stay in lock-step with their homepage
+// card illustrations (previously only Onboarding + Updates were wired up, which
+// left Governance and General showing their raw Discourse colours in the
+// sidebar and on their category-page headers).
+@each $slug, $cfg in $gn-categories {
+  $color: nth($cfg, 1);
 
-// ---------- Category page headers: Onboarding + Updates ----------
-// When you click into Onboarding (/c/knowledge-base) or Updates
-// (/c/announcements) the .category-heading banner title is relabelled in JS
-// (decorateCategoryHeading) to match the sidebar. Here we recolour the badge's
-// coloured square (.badge-category__bg) to the same swatch colour the sidebar
-// squares use — Onboarding = purple, Updates = blue — rather than the raw
-// Discourse category colour (the grey CFCBC0 it would otherwise show). The
-// title text itself is left plain (default --primary), matching the sidebar
-// where only the square is coloured. Keyed on the body.category-<slug> class
-// Discourse sets.
-body.category-knowledge-base .category-heading {
-  .badge-category__bg {
-    background: #8d62d6 !important;
+  // (a) Left-sidebar category square. .prefix-square gets an inline background
+  // from Discourse and the colour is also carried on .sidebar-section-link-prefix;
+  // override both with !important to win over the inline style (and the cloned
+  // Updates row the JS injects, which carries the same /c/<slug> href).
+  .sidebar-section-link[href*="/c/#{$slug}"] {
+    .sidebar-section-link-prefix {
+      color: $color !important;
+    }
+    .prefix-square {
+      background: $color !important;
+    }
   }
-}
-body.category-announcements .category-heading {
-  .badge-category__bg {
-    background: #3a8cb8 !important;
+
+  // (b) Category-page header square. Discourse renders the badge's coloured
+  // square (.badge-category__bg) in the raw category colour; recolour it to the
+  // brand swatch. The title text is left plain (default --primary), matching
+  // the sidebar where only the square is coloured. Keyed on the
+  // body.category-<slug> class Discourse sets.
+  body.category-#{$slug} .category-heading .badge-category__bg {
+    background: $color !important;
+  }
+
+  // (c) Topic-list category bullet. In mixed lists (Latest/Top) the bullet
+  // otherwise shows the raw category colour; key on the badge link href so each
+  // category's dot matches its card. .badge-wrapper is the <a> carrying /c/<slug>.
+  .topic-list .badge-wrapper.bullet[href*="/c/#{$slug}"] .badge-category__bg,
+  .topic-list .badge-wrapper.bullet[href*="/c/#{$slug}"] .badge-category-bg {
+    background: $color !important;
   }
 }
