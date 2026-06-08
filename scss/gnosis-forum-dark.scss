@@ -318,6 +318,12 @@ body.category-knowledge-base .topic-list-item.gn-support-topic {
 //  no !important because it has no competing rules.
 // ============================================================================
 $gn-card-sub: #b8b6b7; // muted secondary text, shared by both subtitles
+// Glyph colour inside the icon badge. The Governance/Delegate tiles render the
+// category's uploaded logo PNG, whose glyph is this muted brand dark-green
+// (#365b4b in both logos); the Support card's only CSS-coloured glyph (the
+// lifebuoy SVG) is set to the same value so all three badges read identically
+// rather than the Support glyph being a bright mint accent.
+$gn-card-glyph-color: #365b4b;
 
 @mixin gn-card-chrome($imp: false) {
   $i: if($imp, " !important", "");
@@ -405,6 +411,9 @@ a.gn-support-card {
 
   .gn-support-card__icon {
     @include gn-card-icon;
+    // Override the badge's default mint colour so the lifebuoy matches the muted
+    // dark-green glyph treatment of the Governance/Delegate logo glyphs.
+    color: $gn-card-glyph-color;
     svg {
       @include gn-card-glyph;
     }
