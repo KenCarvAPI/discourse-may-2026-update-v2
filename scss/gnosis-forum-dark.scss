@@ -762,6 +762,10 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
 .nav-pills > li > a {
   border-radius: 999px !important;
   padding: 6px 14px;
+  // Discourse marks the active tab with a mint bottom border/box-shadow; the
+  // filled pill is our active cue instead, so strip both.
+  border-bottom: none !important;
+  box-shadow: none !important;
   transition:
     background 0.15s ease,
     color 0.15s ease;
@@ -773,6 +777,8 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
   &.active {
     background: var(--primary-low);
     color: var(--primary);
+    border-bottom: none !important;
+    box-shadow: none !important;
   }
 }
 
