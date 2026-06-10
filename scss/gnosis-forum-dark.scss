@@ -167,6 +167,14 @@ html .background-container {
   display: none !important;
 }
 
+// ---------- Mobile homepage intro ----------
+// Injected by the api-initializer (ensureMobileIntro) only on the categories
+// homepage. Hidden by default here; mobile.scss reveals and styles it, because
+// the desktop search banner already provides the intro on larger screens.
+.gn-mobile-intro {
+  display: none;
+}
+
 // ---------- Homepage hero (off by default) ----------
 .gn-hero {
   text-align: center;

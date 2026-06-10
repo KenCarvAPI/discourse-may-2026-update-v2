@@ -410,6 +410,44 @@ div.ac-wrap {
   background-color: rgba(var(--tertiary-rgb), 0.5);
 }
 
+// ---------- Search dropdown option contrast (accessibility) ----------
+// Core paints highlighted search-menu rows (recent searches, suggestions,
+// results) with var(--d-hover). In this dark scheme that variable resolves to
+// a near-white #f2f2f2, so the keyboard-selected / hovered row rendered the
+// light --primary text on a light bar — ~1.06:1 contrast, effectively
+// invisible. The sibling .widget-link / .categories-link states above are
+// already overridden; .search-link was the one path left falling through to
+// the broken default. Give every highlighted state a readable treatment:
+//   - mouse hover: subtle dark-mint tint, light text retained (~12:1)
+//   - keyboard-selected / focused row: solid brand mint, dark text (~12.5:1)
+.search-menu .search-link:hover,
+.search-menu-container .search-link:hover,
+.menu-panel .search-link:hover {
+  background-color: rgba(var(--tertiary-rgb), 0.16);
+  color: var(--primary);
+}
+
+.search-menu .search-link:focus,
+.search-menu .search-link.selected,
+.search-menu .search-link[aria-selected="true"],
+.search-menu-container .search-link:focus,
+.search-menu-container .search-link.selected,
+.search-menu-container .search-link[aria-selected="true"],
+.menu-panel .search-link:focus,
+.menu-panel .search-link.selected {
+  background-color: var(--tertiary);
+  color: var(--secondary);
+
+  // Children (label spans, slugs, leading icon) inherit the dark text so
+  // nothing stays mint-on-mint on the highlighted row.
+  span,
+  .search-item-prefix,
+  .search-item-slug,
+  .d-icon {
+    color: var(--secondary);
+  }
+}
+
 .btn:not(.themes-tab):not(.components-tab),
 .select-kit.dropdown-select-box .dropdown-select-box-header {
   border-radius: 8px;

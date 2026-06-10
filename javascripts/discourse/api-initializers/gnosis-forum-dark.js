@@ -179,6 +179,40 @@ export default apiInitializer("1.8.0", (api) => {
     mount.insertAdjacentElement("afterbegin", hero);
   }
 
+  // ----- Mobile homepage intro -----------------------------------------------
+  // The discourse-search-banner (the desktop welcome/intro that frames "this is
+  // the GnosisDAO governance forum") is not shown on the mobile categories
+  // homepage, leaving phones with no intro copy at the top. Inject a compact
+  // intro block on the homepage; the SCSS reveals it on mobile only (it stays
+  // hidden on desktop, where the search banner already does this job). Skipped
+  // when the search banner IS present so the two never stack.
+  const MOBILE_INTRO_ID = "gn-mobile-intro";
+  function ensureMobileIntro(isHome) {
+    const existing = document.getElementById(MOBILE_INTRO_ID);
+    const hasBanner = !!document.querySelector(".custom-search-banner-wrap");
+    if (!isHome || hasBanner) {
+      if (existing) {
+        existing.remove();
+      }
+      return;
+    }
+    if (existing) {
+      return;
+    }
+    const mount = document.querySelector("#main-outlet");
+    if (!mount) {
+      return;
+    }
+    const intro = document.createElement("section");
+    intro.id = MOBILE_INTRO_ID;
+    intro.className = "gn-mobile-intro";
+    intro.innerHTML =
+      '<h1 class="gn-mobile-intro__title">GnosisDAO Governance Forum</h1>' +
+      '<p class="gn-mobile-intro__sub">Governance discussion for the Gnosis ' +
+      "ecosystem — propose, debate, and shape what comes next.</p>";
+    mount.insertAdjacentElement("afterbegin", intro);
+  }
+
   function decorateBoxes() {
     document
       .querySelectorAll(
@@ -866,6 +900,7 @@ export default apiInitializer("1.8.0", (api) => {
         ensureCards();
       }
       ensureHero(isHome);
+      ensureMobileIntro(isHome);
 
       // Run last so it also catches links inside freshly-injected homepage
       // cards / nav pills / the Support tab: repoint every KB parent-category

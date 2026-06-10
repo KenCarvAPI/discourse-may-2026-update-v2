@@ -222,3 +222,120 @@ ol.category-breadcrumb {
     padding-right: 0.25em;
   }
 }
+
+// =============================================================
+//  Mobile polish (June 2026)
+//  Loaded after the partial imports at the top of this file, so these win on
+//  equal specificity. Addresses six mobile-specific issues reported on phones:
+//   1. surface the Latest topic list under the category cards
+//   2. align card text with the category logos
+//   3. tighten oversized category-card spacing
+//   4. remove the right-hand gap on topic (post) pages
+//   5. drop the ↗ quick-link arrows that iOS renders as a colour emoji
+//   6. show an intro heading (the desktop search banner is absent here)
+// =============================================================
+
+// ----- #5 Quick-link arrows render as an emoji on iOS -----
+// U+2197 (↗) has emoji presentation on iOS Safari, so the Docs / Snapshot /
+// Treasury pills sprout a coloured emoji arrow. Drop the arrow on mobile — the
+// pills read fine as plain labels on a small screen.
+.gn-topnav a.gn-topnav-link .gn-topnav-arrow {
+  display: none !important;
+}
+
+// ----- #4 Remove the right-hand gap (centre #main-outlet) -----
+// The page card is sized to less than full width but left-aligned, so all the
+// slack falls on the right. Centre it on every mobile page so the side gaps are
+// symmetric, and let topic/PM pages use a little more of the width.
+html body #main-outlet {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+html body.archetype-regular #main-outlet,
+html body.archetype-private_message #main-outlet {
+  width: calc(100% - 1em) !important;
+}
+
+// ----- #2 + #3 Category cards: tighter spacing + logo-aligned text -----
+// Pull the grid in (it no longer needs side margins — #main-outlet already pads)
+// and trim the gap between cards.
+.custom-category-boxes:not(.above-discovery-categories-outlet),
+.category-boxes,
+.category-boxes-with-topics {
+  gap: 0.5rem !important;
+  margin: 0.5rem 0 1rem !important;
+}
+
+// Trim each card's outer padding so the cards aren't so tall.
+.custom-category-boxes .category-box,
+.category-boxes .category-box,
+.category-boxes-with-topics .category-box {
+  padding: 0.7rem 0.85rem !important;
+}
+
+// Illustrated homepage cards (gn-cat-*): the icon tile is drawn on the inner's
+// ::before and was vertically centred against a taller text block, so it looked
+// out of line with the title. Top-align the tile with the text and drop the
+// inner's extra vertical padding for a compact, aligned row.
+.custom-category-boxes .category-box[class*="gn-cat-"] .category-box-inner {
+  min-height: 0 !important;
+  padding: 0 0 0 54px !important; // 40px tile + 14px gap
+
+  &::before {
+    width: 40px !important;
+    height: 40px !important;
+    top: 0 !important;
+    transform: none !important;
+    border-radius: 10px !important;
+  }
+}
+.custom-category-boxes .category-box[class*="gn-cat-"] .description {
+  margin-top: 0.3rem !important;
+}
+
+// ----- #1 Surface the combined Latest list under the cards -----
+// The categories homepage ("categories and latest topics") renders a Latest
+// list below/beside the card grid. With the cards now compact it rises into
+// view; make sure the latest column stacks full-width on phones and keeps a
+// little air above it so it reads as its own section.
+.column.categories,
+.column.latest,
+.categories-and-latest .column {
+  width: 100% !important;
+  float: none !important;
+}
+.column.latest,
+.categories-and-latest .column.latest {
+  margin-top: 1rem !important;
+}
+
+// ----- #6 Mobile intro heading -----
+// Revealed here (hidden on desktop in gnosis-forum-dark.scss). Injected by the
+// api-initializer on the categories homepage so phones get the "this is the
+// GnosisDAO governance forum" framing the desktop search banner provides.
+.gn-mobile-intro {
+  display: block;
+  margin: 0.25rem 0 1rem;
+
+  .gn-mobile-intro__title {
+    font-family: "Unica77LL", sans-serif;
+    font-size: 1.6rem;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.35rem;
+    color: var(--primary);
+  }
+
+  .gn-mobile-intro__sub {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin: 0;
+    color: var(--primary-medium-high);
+  }
+}
+// Belt-and-suspenders: if the search banner is present on mobile too, never
+// show both intros.
+body:has(.custom-search-banner-wrap) .gn-mobile-intro {
+  display: none;
+}
