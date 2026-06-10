@@ -40,6 +40,20 @@
   --primary-700: #c0bebf !important;
   --primary-800: #d8d6d7 !important;
   --primary-900: #ecebec !important;
+
+  // ---------- Hover / selected row backgrounds (accessibility) ----------
+  // Discourse derives --d-hover and --d-selected from the *light* base scheme,
+  // so in this dark theme they stay light (--d-hover ≈ #f2f2f2 near-white,
+  // --d-selected ≈ #d1f0ff pale blue). Every component that tints a hovered or
+  // selected row from these tokens — select-kit dropdowns (category / tag
+  // choosers), search results, topic-list rows, menu panels — therefore drew
+  // the light --primary text on a light bar (≈1:1 contrast, unreadable).
+  // Pin both to dark, brand-tinted backgrounds so the light text always has
+  // strong contrast (hover ≈13.6:1, selected ≈10.3:1) and selection stays
+  // visually distinct from hover. Fixing the tokens corrects every dropdown,
+  // menu and result list in one place rather than per-component.
+  --d-hover: rgba(var(--tertiary-rgb), 0.12) !important;
+  --d-selected: rgba(var(--tertiary-rgb), 0.22) !important;
 }
 
 // Belt-and-suspenders: explicitly pin description / muted-text colors in the
