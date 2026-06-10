@@ -161,8 +161,10 @@ html .background-container {
 
 // DAO Tracker button hidden for now — will be returned in the future.
 // Re-enable by removing this rule. The link is still rendered in the DOM.
-.gn-topnav-link.gn-topnav-ext {
-  display: none;
+// Selector mirrors `.gn-topnav a.gn-topnav-link` above so it outranks that
+// rule's `display: inline-flex` (the !important keeps it bulletproof).
+.gn-topnav a.gn-topnav-link.gn-topnav-ext {
+  display: none !important;
 }
 
 // ---------- Homepage hero (off by default) ----------
