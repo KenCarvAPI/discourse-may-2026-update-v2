@@ -179,18 +179,32 @@ export default apiInitializer("1.8.0", (api) => {
     mount.insertAdjacentElement("afterbegin", hero);
   }
 
+  // True when Discourse is rendering its mobile layout. Prefer the Site service
+  // (the same signal that decides whether mobile/mobile.scss loads), with body /
+  // viewport fallbacks so the mobile-only injections below stay in lock-step
+  // with the mobile stylesheet.
+  function isMobileView() {
+    const site = api.container.lookup("service:site");
+    if (site && typeof site.mobileView === "boolean") {
+      return site.mobileView;
+    }
+    return (
+      document.documentElement.classList.contains("mobile-view") ||
+      document.body.classList.contains("mobile-view") ||
+      window.matchMedia("(max-width: 700px)").matches
+    );
+  }
+
   // ----- Mobile homepage intro -----------------------------------------------
   // The discourse-search-banner (the desktop welcome/intro that frames "this is
   // the GnosisDAO governance forum") is not shown on the mobile categories
   // homepage, leaving phones with no intro copy at the top. Inject a compact
-  // intro block on the homepage; the SCSS reveals it on mobile only (it stays
-  // hidden on desktop, where the search banner already does this job). Skipped
-  // when the search banner IS present so the two never stack.
+  // intro block on the homepage. Gated on the mobile view so it never appears on
+  // desktop (where the search banner already does this job); the SCSS styles it.
   const MOBILE_INTRO_ID = "gn-mobile-intro";
   function ensureMobileIntro(isHome) {
     const existing = document.getElementById(MOBILE_INTRO_ID);
-    const hasBanner = !!document.querySelector(".custom-search-banner-wrap");
-    if (!isHome || hasBanner) {
+    if (!isHome || !isMobileView()) {
       if (existing) {
         existing.remove();
       }
@@ -211,6 +225,147 @@ export default apiInitializer("1.8.0", (api) => {
       '<p class="gn-mobile-intro__sub">Governance discussion for the Gnosis ' +
       "ecosystem — propose, debate, and shape what comes next.</p>";
     mount.insertAdjacentElement("afterbegin", intro);
+  }
+
+  // ----- Mobile homepage "Latest" list ---------------------------------------
+  // Discourse's "categories and latest topics" page style appends a Latest list
+  // below the category boxes — but only the DESKTOP categories template does so.
+  // The mobile categories homepage shows the boxes alone, so phones never get
+  // the "scroll down to see the latest conversations" experience desktop has.
+  // Fetch the latest topics via the store and render a compact list under the
+  // cards. Mobile-only and homepage-only; removed when either stops being true.
+  const MOBILE_LATEST_ID = "gn-mobile-latest";
+  let mobileLatestPending = false;
+
+  function timeAgo(iso) {
+    if (!iso) {
+      return "";
+    }
+    const then = Date.parse(iso);
+    if (isNaN(then)) {
+      return "";
+    }
+    const mins = Math.max(0, (Date.now() - then) / 60000);
+    if (mins < 1) {
+      return "now";
+    }
+    if (mins < 60) {
+      return `${Math.round(mins)}m`;
+    }
+    const hrs = mins / 60;
+    if (hrs < 24) {
+      return `${Math.round(hrs)}h`;
+    }
+    const days = hrs / 24;
+    if (days < 30) {
+      return `${Math.round(days)}d`;
+    }
+    const months = days / 30;
+    if (months < 12) {
+      return `${Math.round(months)}mo`;
+    }
+    return `${Math.round(days / 365)}y`;
+  }
+
+  function renderMobileLatest(topics) {
+    if (document.getElementById(MOBILE_LATEST_ID)) {
+      return;
+    }
+    const grid = document.querySelector(".custom-category-boxes");
+    const fallback = document.querySelector("#main-outlet");
+    if (!grid && !fallback) {
+      return;
+    }
+
+    const site = api.container.lookup("service:site");
+    const cats = (site && site.categories) || [];
+    const catById = {};
+    cats.forEach((c) => {
+      if (c) {
+        catById[c.id] = c;
+      }
+    });
+
+    const rows = topics
+      .map((t) => {
+        const slug = t.slug || "topic";
+        const title = t.fancy_title || t.title || "";
+        const replies =
+          (t.posts_count != null ? t.posts_count - 1 : t.reply_count) || 0;
+        const cat = catById[t.category_id];
+        const catName = cat ? cat.name || "" : "";
+        const catColor = cat && cat.color ? `#${cat.color}` : "transparent";
+        const when = timeAgo(t.bumped_at || t.last_posted_at || t.created_at);
+        return (
+          `<a class="gn-mlatest__item" href="/t/${slug}/${t.id}">` +
+          `<span class="gn-mlatest__title">${title}</span>` +
+          `<span class="gn-mlatest__meta">` +
+          (catName
+            ? `<span class="gn-mlatest__cat"><span class="gn-mlatest__dot"` +
+              ` style="background:${catColor}"></span>${catName}</span>`
+            : "") +
+          `<span class="gn-mlatest__replies">${replies} ` +
+          `${replies === 1 ? "reply" : "replies"}</span>` +
+          (when ? `<span class="gn-mlatest__date">${when}</span>` : "") +
+          "</span></a>"
+        );
+      })
+      .join("");
+
+    const section = document.createElement("section");
+    section.id = MOBILE_LATEST_ID;
+    section.className = "gn-mlatest";
+    section.innerHTML =
+      '<div class="gn-mlatest__head">' +
+      '<h2 class="gn-mlatest__heading">Latest</h2>' +
+      '<a class="gn-mlatest__all" href="/latest">All</a></div>' +
+      `<div class="gn-mlatest__list">${rows}</div>`;
+
+    if (grid) {
+      grid.insertAdjacentElement("afterend", section);
+    } else {
+      fallback.appendChild(section);
+    }
+  }
+
+  function ensureMobileLatest(isHome) {
+    const existing = document.getElementById(MOBILE_LATEST_ID);
+    if (!isHome || !isMobileView()) {
+      if (existing) {
+        existing.remove();
+      }
+      return;
+    }
+    if (existing || mobileLatestPending) {
+      return;
+    }
+    // If Discourse is already rendering a topic list on this page, don't add a
+    // second one.
+    if (
+      document.querySelector(
+        "#main-outlet .topic-list .topic-list-item, " +
+          "#main-outlet .latest-topic-list-item"
+      )
+    ) {
+      return;
+    }
+    const store = api.container.lookup("service:store");
+    if (!store || typeof store.findFiltered !== "function") {
+      return;
+    }
+    mobileLatestPending = true;
+    store
+      .findFiltered("topicList", { filter: "latest" })
+      .then((list) => {
+        mobileLatestPending = false;
+        const topics = (list && list.topics ? list.topics : []).slice(0, 12);
+        if (topics.length) {
+          renderMobileLatest(topics);
+        }
+      })
+      .catch(() => {
+        mobileLatestPending = false;
+      });
   }
 
   function decorateBoxes() {
@@ -911,6 +1066,7 @@ export default apiInitializer("1.8.0", (api) => {
       }
       ensureHero(isHome);
       ensureMobileIntro(isHome);
+      ensureMobileLatest(isHome);
 
       // Run last so it also catches links inside freshly-injected homepage
       // cards / nav pills / the Support tab: repoint every KB parent-category
