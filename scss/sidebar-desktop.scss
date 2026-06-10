@@ -12,13 +12,18 @@
     --d-sidebar-highlight-color: var(--tertiary);
     --d-sidebar-highlight-hover-color: var(--tertiary);
 
+    // The selected sidebar item now sits on the dark-mint --d-selected pill
+    // (see the token override in common.scss). Use the light --primary text so
+    // it reads with strong contrast (~10:1) and matches the selected styling
+    // used for dropdowns and search results, rather than the dark --secondary
+    // text this previously used when the active background was light.
     .sidebar-section-link.active,
     .sidebar-section-link[aria-current="page"] {
-      color: var(--secondary);
+      color: var(--primary);
       .sidebar-section-link-content-text,
       .sidebar-section-link-content-badge,
       .d-icon {
-        color: var(--secondary);
+        color: var(--primary);
       }
     }
 
