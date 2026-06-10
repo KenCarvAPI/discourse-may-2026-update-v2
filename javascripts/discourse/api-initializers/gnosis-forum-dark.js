@@ -821,6 +821,16 @@ export default apiInitializer("1.8.0", (api) => {
     if (!onKbCategory() || onSupportView()) {
       return;
     }
+    // Only on the KB category LIST page, never inside a topic. The
+    // category-knowledge-base body class is also present on topic pages within
+    // the KB category, where the "New & Unread Topics" suggested list is itself
+    // a .topic-list — without this guard the card lands above it. Discovery
+    // (category-list) routes start with "discovery."; topic routes do not.
+    const router = api.container.lookup("service:router");
+    const route = router && router.currentRouteName;
+    if (!route || !route.startsWith("discovery.")) {
+      return;
+    }
     if (document.getElementById(SUPPORT_CARD_ID)) {
       return;
     }
