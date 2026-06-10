@@ -417,13 +417,18 @@ div.ac-wrap {
 // light --primary text on a light bar — ~1.06:1 contrast, effectively
 // invisible. The sibling .widget-link / .categories-link states above are
 // already overridden; .search-link was the one path left falling through to
-// the broken default. Give every highlighted state a readable treatment:
-//   - mouse hover: subtle dark-mint tint, light text retained (~12:1)
-//   - keyboard-selected / focused row: solid brand mint, dark text (~12.5:1)
+// the broken default. Keep the theme's dark-on-light styling: both states use
+// a dark-mint tint over the menu background with the light --primary text
+// retained, so highlighted rows read like the rest of the dark UI instead of
+// flashing a light bar.
+//   - mouse hover: subtle dark-mint tint (~13.5:1)
+//   - keyboard-selected / focused row: slightly stronger tint plus a mint
+//     inset edge to mark selection, mirroring the selected-row accent used for
+//     topic / search results lower in this file (~10:1)
 .search-menu .search-link:hover,
 .search-menu-container .search-link:hover,
 .menu-panel .search-link:hover {
-  background-color: rgba(var(--tertiary-rgb), 0.16);
+  background-color: rgba(var(--tertiary-rgb), 0.12);
   color: var(--primary);
 }
 
@@ -435,17 +440,9 @@ div.ac-wrap {
 .search-menu-container .search-link[aria-selected="true"],
 .menu-panel .search-link:focus,
 .menu-panel .search-link.selected {
-  background-color: var(--tertiary);
-  color: var(--secondary);
-
-  // Children (label spans, slugs, leading icon) inherit the dark text so
-  // nothing stays mint-on-mint on the highlighted row.
-  span,
-  .search-item-prefix,
-  .search-item-slug,
-  .d-icon {
-    color: var(--secondary);
-  }
+  background-color: rgba(var(--tertiary-rgb), 0.22);
+  color: var(--primary);
+  box-shadow: inset 2px 0 0 var(--tertiary);
 }
 
 .btn:not(.themes-tab):not(.components-tab),
