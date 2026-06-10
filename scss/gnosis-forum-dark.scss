@@ -754,3 +754,47 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
 #create-topic {
   border-radius: 999px !important;
 }
+
+// ---------- Pill-shape the list nav tabs ----------
+// The Latest / New / Unread / Top / Categories row renders as .nav-pills, but
+// Discourse draws them flat. Give every tab a pill outline and the active tab a
+// soft filled pill so the row matches the rest of the rounded chrome.
+.nav-pills > li > a {
+  border-radius: 999px !important;
+  padding: 6px 14px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+
+  &:hover {
+    background: var(--primary-very-low);
+  }
+
+  &.active {
+    background: var(--primary-low);
+    color: var(--primary);
+  }
+}
+
+// ---------- Pill-shape tags ----------
+// Box-style tags in topic lists, on topic pages and in the tag dropdowns.
+// Simple (text-only) tags have no chrome, so only the boxed variants change.
+.discourse-tag.box,
+a.discourse-tag.box,
+.discourse-tags .discourse-tag.box {
+  border-radius: 999px !important;
+  padding-inline: 10px;
+}
+
+// ---------- Pill-shape topic & post action buttons ----------
+// Reply / Share / Bookmark / Flag on the topic footer and on each post, plus
+// the topic timeline reply button, so the topic view reads the same as the
+// list header. Scoped to those containers so other buttons are untouched.
+.topic-footer-main-buttons,
+.topic-footer-buttons,
+.post-controls,
+.topic-timeline {
+  .btn {
+    border-radius: 999px !important;
+  }
+}
