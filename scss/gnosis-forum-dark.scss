@@ -159,14 +159,6 @@ html .background-container {
   margin-left: auto;
 }
 
-// DAO Tracker button hidden for now — will be returned in the future.
-// Re-enable by removing this rule. The link is still rendered in the DOM.
-// Selector mirrors `.gn-topnav a.gn-topnav-link` above so it outranks that
-// rule's `display: inline-flex` (the !important keeps it bulletproof).
-.gn-topnav a.gn-topnav-link.gn-topnav-ext {
-  display: none !important;
-}
-
 // ---------- Mobile homepage intro ----------
 // Injected by the api-initializer (ensureMobileIntro) only on the categories
 // homepage. Hidden by default here; mobile.scss reveals and styles it, because

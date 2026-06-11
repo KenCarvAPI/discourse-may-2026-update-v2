@@ -17,7 +17,7 @@ hero_subheading:
 
 dao_tracker_url:
   type: string
-  default: "https://gnosisdaodocs.vercel.app/docs/Dashboard"
+  default: "https://docs.gnosis.io/docs/Dashboard"
 
 # The real category slugs surfaced as homepage cards, in display order.
 # This is the ORDER knob; the per-category label/subtitle/id live in the CARDS
