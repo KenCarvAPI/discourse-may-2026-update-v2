@@ -601,6 +601,14 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
     flex-direction: column;
     gap: 2px;
     min-width: 0; // enable ellipsis on the title/description
+    // The component sizes this column to a fixed
+    // `.category-logo + .category-details { height: calc(-1em + 132px); max-height: 132px; padding: .5em }`,
+    // which locks the card to ~162px of mostly-empty space (the title floats at
+    // the top while the icon/arrow strand in the middle). Let the column size to
+    // its content so the card collapses to the compact resource-button height.
+    height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
   }
 
   // Title — single line here (the Governance tiles sit two-up), so add the
@@ -642,6 +650,33 @@ body.category-governance .custom-category-boxes .category-box.gn-keep-box {
   // The component can render a nested subcategories list; not wanted in the card.
   .subcategories {
     display: none !important;
+  }
+}
+
+// ---------- Governance tiles: stack full-width on phones ----------
+// The two tiles share the line via `flex: 1 1 0; min-width: 0`, so they never
+// actually wrap — on a phone they stay two-up and shrink until the long titles
+// ("Governance Resources" / "Delegate Communication") ellipsise to a few
+// characters and the arrow crowds the edge. Below the mobile breakpoint, stack
+// them one-per-row at full width so each title reads in full. (Desktop keeps the
+// side-by-side row.)
+// NOTE on selectors: the row rule above compiles to `flex-flow: wrap !important`
+// (i.e. `flex-direction: row !important`), and the card rule to `flex: 1 1 0
+// !important`. A same-specificity override would only win on source order, which
+// is too fragile against an !important shorthand — so these are deliberately one
+// specificity step higher (leading `html`) to win outright. `flex-flow` (not just
+// `flex-direction`) is set so it fully beats the shorthand, and the cards are
+// pinned to `flex: 0 0 auto` so they don't stretch vertically in the column.
+@media (max-width: 700px) {
+  html body.category-dao .custom-category-boxes,
+  html body.category-governance .custom-category-boxes {
+    flex-flow: column nowrap !important;
+  }
+
+  html body.category-dao .custom-category-boxes .category-box.gn-keep-box,
+  html body.category-governance .custom-category-boxes .category-box.gn-keep-box {
+    flex: 0 0 auto !important;
+    width: 100% !important;
   }
 }
 
