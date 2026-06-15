@@ -167,6 +167,21 @@ html .background-container {
   display: none !important;
 }
 
+// The quick-links bar is injected on every route, including the full-page
+// login / sign-up / password-reset screens, where it floats untethered above
+// the form. Hide it there — the bar belongs to the forum chrome, not the auth
+// landing pages. Body classes are set by Discourse core per route.
+body.login-page,
+body.signup-page,
+body.password-reset-page,
+body.password-reset,
+body.invites-show {
+  #gn-topnav,
+  .gn-topnav {
+    display: none !important;
+  }
+}
+
 // ---------- Mobile homepage intro ----------
 // Injected by the api-initializer (ensureMobileIntro) only on the categories
 // homepage. Hidden by default here; mobile.scss reveals and styles it, because
