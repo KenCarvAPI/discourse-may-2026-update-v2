@@ -327,6 +327,17 @@ html body.archetype-private_message #main-outlet {
 .gn-mlatest {
   margin: 0.75rem 0 1rem;
 
+  // Pre-fetch placeholder state (see buildMobileLatestShell in the
+  // api-initializer): the empty section is inserted before the /latest fetch
+  // resolves, with roughly the height of the filled list (head ~26px + 12 rows
+  // at ~60-80px each + gaps) reserved so the arriving rows don't push the page
+  // down (CLS). Deliberately a little UNDER the typical filled height — a
+  // small grow on fill is cheaper than a collapse if titles run short. The
+  // class is removed when the rows are rendered.
+  &.gn-mlatest--pending {
+    min-height: 700px;
+  }
+
   .gn-mlatest__head {
     display: flex;
     align-items: baseline;

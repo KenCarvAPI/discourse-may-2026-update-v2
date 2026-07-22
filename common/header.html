@@ -1,1 +1,18 @@
 <div class="background-container"></div>
+
+<!-- Crawler-visible homepage intro (SEO). Discourse serves search engines a
+     server-rendered "crawler view" that never boots the Ember app, so none of
+     the theme's JS-injected copy (search banner, mobile intro, card subtitles)
+     is indexable. This block IS server-rendered into both layouts; in the app
+     it is hidden by CSS (see the .gn-seo-intro rule in common.scss, scoped to
+     body:not(.crawler) so it stays visible to crawlers — theme CSS loads in
+     the crawler view too). Users see the same copy via the search banner
+     (desktop) and the JS mobile intro, so content parity is preserved. -->
+<section class="gn-seo-intro">
+  <h1>GnosisDAO Governance Forum</h1>
+  <p>
+    The governance forum for GnosisDAO and the Gnosis ecosystem — propose and
+    debate Gnosis Improvement Proposals (GIPs), follow treasury and delegate
+    updates, and help shape what comes next.
+  </p>
+</section>

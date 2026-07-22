@@ -822,3 +822,36 @@ html body #main-outlet {
   padding-left: 14px;
 }
 }
+
+// ---------- Crawler-visible homepage intro (SEO) ----------
+// Rendered from common/header.html so search engines (which get Discourse's
+// server-rendered crawler view, never the Ember app) index a real <h1> and
+// site description. Hidden in the app, where the search banner (desktop) and
+// the JS-injected mobile intro already show equivalent copy. The :not(.crawler)
+// scope is load-bearing: theme CSS is also served to crawlers, so a plain
+// display:none would hide the block from Google's renderer as well.
+body:not(.crawler) .gn-seo-intro {
+  display: none !important;
+}
+
+// ---------- Font loading (Core Web Vitals) ----------
+// JetBrains Mono is the site base font (admin > fonts). Core emits its
+// @font-face WITHOUT font-display, so on slow connections text is invisible
+// until the font downloads (FOIT), delaying LCP. Re-declare the same faces
+// with font-display: swap — theme stylesheets load after core's
+// color-definitions sheet, and for @font-face rules with the same family and
+// descriptors the later declaration wins, so text paints immediately in the
+// fallback font and swaps when the file arrives. The ?v query mirrors core's
+// cache-buster; the path serves the same file regardless of the version.
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Regular.woff2?v=0.0.19") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Bold.woff2?v=0.0.19") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
