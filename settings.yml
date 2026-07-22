@@ -22,9 +22,11 @@ dao_tracker_url:
 # The real category slugs surfaced as homepage cards, in display order.
 # This is the ORDER knob; the per-category label/subtitle/id live in the CARDS
 # map and the colour/illustration in the $gn-categories SCSS map. If you add,
-# remove, or rename a slug here, update those two maps (and the "show only four"
-# :not() chain in scss/gnosis-forum-dark.scss) to match.
+# remove, or rename a slug here, update those two maps (and the "show only
+# the canonical cards" :not() chain in scss/gnosis-forum-dark.scss) to match.
+# NOTE: `announcements` ("Updates") was scrubbed from the front end; even if it
+# is re-added here, the JS filters it out via HIDDEN_SLUGS.
 category_slugs:
   type: list
-  default: "general|dao|knowledge-base|announcements"
+  default: "general|dao|knowledge-base"
   list_type: compact

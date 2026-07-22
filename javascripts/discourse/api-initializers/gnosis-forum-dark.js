@@ -47,7 +47,8 @@ export default apiInitializer("1.8.0", (api) => {
   //   general          kept as-is
   //   dao              shown as "Governance" (its display name)
   //   knowledge-base   shown as "Knowledge Base" (its real name)
-  //   announcements    shown as "Updates"
+  // (announcements — formerly shown as "Updates" — was removed from the forum
+  // front end entirely: no homepage card, no sidebar row; see HIDDEN_SLUGS.)
   // NOTE: the Governance category's real slug on this install is `dao` (/c/dao),
   // keyed here under `dao`, not `governance`. If a slug differs on your install,
   // change the key here, the `category_slugs` setting, and BOTH the
@@ -68,12 +69,14 @@ export default apiInitializer("1.8.0", (api) => {
       sub: "New to GnosisDAO? Start here.",
       id: 32,
     },
-    announcements: {
-      label: "Updates",
-      sub: "The latest from across the DAO.",
-      id: 34,
-    },
   };
+
+  // Categories scrubbed from the theme's front end. Filtered out of the
+  // configured card order (the admin's stored category_slugs value may still
+  // list them) and their sidebar rows are removed in decorateSidebar. The
+  // matching CSS lives in scss/gnosis-forum-dark.scss (sidebar hide rule and
+  // the "show only the canonical cards" :not() chain).
+  const HIDDEN_SLUGS = ["announcements"];
 
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const labelFor = (slug) =>
@@ -82,7 +85,7 @@ export default apiInitializer("1.8.0", (api) => {
 
   // ----- Category resolution (shared) ----------------------------------------
   // One place that turns a slug into a live category record / canonical URL, so
-  // every injected element (homepage cards, sidebar Updates row, Delegate tile,
+  // every injected element (homepage cards, Delegate tile,
   // Support pill) resolves the same way instead of re-implementing the lookup.
 
   function findCategory(pred) {
@@ -267,16 +270,32 @@ export default apiInitializer("1.8.0", (api) => {
     return `${Math.round(days / 365)}y`;
   }
 
-  function renderMobileLatest(topics) {
+  // Insert the (empty) Latest section immediately, BEFORE the topics fetch, so
+  // its space is already reserved when the rows arrive — otherwise the late
+  // insertion pushes everything below it down (layout shift / CLS, a Core Web
+  // Vitals ranking factor). The .gn-mlatest--pending class carries a min-height
+  // approximating the filled list (see mobile.scss); it is removed on fill.
+  function buildMobileLatestShell() {
     if (document.getElementById(MOBILE_LATEST_ID)) {
-      return;
+      return null;
     }
     const grid = document.querySelector(".custom-category-boxes");
     const fallback = document.querySelector("#main-outlet");
     if (!grid && !fallback) {
-      return;
+      return null;
     }
+    const section = document.createElement("section");
+    section.id = MOBILE_LATEST_ID;
+    section.className = "gn-mlatest gn-mlatest--pending";
+    if (grid) {
+      grid.insertAdjacentElement("afterend", section);
+    } else {
+      fallback.appendChild(section);
+    }
+    return section;
+  }
 
+  function fillMobileLatest(section, topics) {
     const site = api.container.lookup("service:site");
     const cats = (site && site.categories) || [];
     const catById = {};
@@ -312,20 +331,12 @@ export default apiInitializer("1.8.0", (api) => {
       })
       .join("");
 
-    const section = document.createElement("section");
-    section.id = MOBILE_LATEST_ID;
-    section.className = "gn-mlatest";
     section.innerHTML =
       '<div class="gn-mlatest__head">' +
       '<h2 class="gn-mlatest__heading">Latest</h2>' +
       '<a class="gn-mlatest__all" href="/latest">All</a></div>' +
       `<div class="gn-mlatest__list">${rows}</div>`;
-
-    if (grid) {
-      grid.insertAdjacentElement("afterend", section);
-    } else {
-      fallback.appendChild(section);
-    }
+    section.classList.remove("gn-mlatest--pending");
   }
 
   function ensureMobileLatest(isHome) {
@@ -353,18 +364,32 @@ export default apiInitializer("1.8.0", (api) => {
     if (!store || typeof store.findFiltered !== "function") {
       return;
     }
+    // Reserve the list's space in the page before fetching (CLS — see
+    // buildMobileLatestShell). If the shell can't mount, skip the fetch too.
+    const shell = buildMobileLatestShell();
+    if (!shell) {
+      return;
+    }
     mobileLatestPending = true;
     store
       .findFiltered("topicList", { filter: "latest" })
       .then((list) => {
         mobileLatestPending = false;
+        // A navigation away removes the shell (top of this function); don't
+        // resurrect the list on whatever page we're on now.
+        if (!shell.isConnected) {
+          return;
+        }
         const topics = (list && list.topics ? list.topics : []).slice(0, 12);
         if (topics.length) {
-          renderMobileLatest(topics);
+          fillMobileLatest(shell, topics);
+        } else {
+          shell.remove();
         }
       })
       .catch(() => {
         mobileLatestPending = false;
+        shell.remove();
       });
   }
 
@@ -416,7 +441,7 @@ export default apiInitializer("1.8.0", (api) => {
       });
   }
 
-  // Guarantee the four homepage cards exist. The boxes component renders the
+  // Guarantee the configured homepage cards exist. The boxes component renders the
   // Governance box empty (it is the only category with subcategories), leaving a
   // blank slot. After decorateBoxes has tagged the boxes that DID render, drop
   // any empty/contentless boxes and inject a proper card for any of the four
@@ -437,7 +462,8 @@ export default apiInitializer("1.8.0", (api) => {
     const raw = settings.category_slugs;
     const order = (Array.isArray(raw) ? raw : String(raw || "").split("|"))
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((s) => !HIDDEN_SLUGS.includes(s));
 
     let prev = null;
     order.forEach((slug) => {
@@ -629,91 +655,29 @@ export default apiInitializer("1.8.0", (api) => {
         }
       });
 
-    ensureSidebarUpdatesUnderOnboarding();
+    removeHiddenSidebarRows();
   }
 
-  // Guarantee the "Updates" (announcements) link sits directly beneath
-  // "Onboarding" (knowledge-base) in the left sidebar. If it is already in the
-  // list but ordered elsewhere, move it; if it is missing entirely, build it by
-  // cloning the Onboarding row so it inherits the native sidebar markup.
-  function ensureSidebarUpdatesUnderOnboarding() {
-    const wrapperFor = (slug) => {
-      const link = document.querySelector(
-        `.sidebar-section-link[href*="/c/${slug}"]`
-      );
-      return link ? link.closest(".sidebar-section-link-wrapper") || link : null;
-    };
-
-    const onboarding = wrapperFor("knowledge-base");
-    if (!onboarding || !onboarding.parentNode) {
-      return;
-    }
-
-    let updates = wrapperFor("announcements");
-
-    if (updates) {
-      // Already present — only move it if it is not already the next sibling.
-      if (onboarding.nextElementSibling !== updates) {
-        onboarding.parentNode.insertBefore(
-          updates,
-          onboarding.nextElementSibling
-        );
-      }
-      return;
-    }
-
-    // Missing — resolve the announcements category and clone the row. The URL
-    // and id fall back to CARDS.announcements.id when the live record is absent
-    // (see categoryUrl), so there is no loose hardcoded id here.
-    const cat = findCategory(
-      (c) => c.slug === "announcements" && !c.parent_category_id
-    );
-    const url = categoryUrl("announcements");
-    const catId =
-      (cat && cat.id) || (CARDS.announcements && CARDS.announcements.id);
-
-    updates = onboarding.cloneNode(true);
-    // The clone carries Onboarding's category id, ember id and description
-    // title; repoint every one of them at announcements so the link routes
-    // there and reads correctly.
-    if (updates.hasAttribute("data-category-id") && catId != null) {
-      updates.setAttribute("data-category-id", String(catId));
-    }
-    const link = updates.querySelector(".sidebar-section-link") || updates;
-    link.removeAttribute("id");
-    // The clone copies the `ember-view` class but NOT Ember's LinkTo click
-    // listener, so clicks fall through to a hard browser navigation. Discourse's
-    // global click interceptor (intercept-click.js) deliberately ignores any
-    // <a class="ember-view"> that is not also a .d-link, so without this the
-    // Updates link does a full page reload — which drops the ?preview_theme_id
-    // param and bounces you back to the default (old) theme. Strip the stale
-    // marker and add .d-link so the interceptor SPA-routes the click instead.
-    link.classList.remove("ember-view");
-    link.classList.add("d-link");
-    link.setAttribute("href", url);
-    link.setAttribute("title", (CARDS.announcements && CARDS.announcements.sub) || "");
-    // The cloned row carries Onboarding's inline swatch colour; the SCSS
-    // recolours it to the announcements swatch (keyed on the /c/announcements
-    // href, applied with !important) so the colour lives in one place.
-    link.classList.remove("active");
-    link.removeAttribute("aria-current");
-    const textEl =
-      link.querySelector(".sidebar-section-link-content-text") || link;
-    textEl.textContent = (CARDS.announcements && CARDS.announcements.label) ||
-      "Updates";
-    // Drop any unread/new count badge carried over from the cloned row.
-    const badge = link.querySelector(".sidebar-section-link-content-badge");
-    if (badge) {
-      badge.remove();
-    }
-
-    onboarding.parentNode.insertBefore(updates, onboarding.nextElementSibling);
+  // Remove the sidebar rows for scrubbed categories (HIDDEN_SLUGS). The
+  // announcements ("Updates") row may be rendered natively when the category is
+  // in the user's sidebar list; take out the whole wrapper so no gap is left.
+  // The CSS hide rule in scss/gnosis-forum-dark.scss covers the instant before
+  // this runs (and any re-render the observer misses).
+  function removeHiddenSidebarRows() {
+    HIDDEN_SLUGS.forEach((slug) => {
+      document
+        .querySelectorAll(`.sidebar-section-link[href*="/c/${slug}"]`)
+        .forEach((link) => {
+          const wrapper =
+            link.closest(".sidebar-section-link-wrapper") || link;
+          wrapper.remove();
+        });
+    });
   }
 
   // Relabel the category-page header so it matches the rest of the theme's
-  // identity: on /c/knowledge-base the banner title reads "Knowledge Base", on
-  // /c/announcements it reads "Updates" — the same labels used on the sidebar
-  // and homepage cards. Discourse renders the real category name in the
+  // identity: e.g. on /c/dao the banner title reads "Governance" — the same
+  // labels used on the sidebar and homepage cards. Discourse renders the real category name in the
   // .category-heading badge; we swap only the visible text (and keep the
   // screen-reader heading in sync). The swatch colour is applied in SCSS,
   // keyed on the body.category-<slug> class Discourse already sets.

@@ -34,11 +34,13 @@
 //     the asset, so the colour below should equal the SVG's main fill).
 //  $general/$governance/$onboarding/$updates are the asset vars from about.json.
 // ============================================================================
+// (announcements — formerly shown as "Updates" — was scrubbed from the front
+// end: not in this map, not in the :not() chain below, and its sidebar row is
+// hidden/removed. See HIDDEN_SLUGS in api-initializers/gnosis-forum-dark.js.)
 $gn-categories: (
   "general": (#2fd79c, $general),
   "dao": (#f0934a, $governance),
   "knowledge-base": (#8d62d6, $onboarding),
-  "announcements": (#3a8cb8, $updates),
 );
 
 // ---------- Page tint + soft green glow ----------
@@ -217,23 +219,22 @@ body.invites-show {
   }
 }
 
-// ---------- Show only the four canonical category cards ----------
+// ---------- Show only the three canonical category cards ----------
 // The forum has more categories than we surface (Treasury, Delegate
-// communication, Staff, etc.). The JS tags every box with gn-cat-<slug>;
-// hide any tagged box that is not one of the four we want.
-// NOTE: this :not() chain lists the same four slugs as $gn-categories above —
+// communication, Announcements, Staff, etc.). The JS tags every box with
+// gn-cat-<slug>; hide any tagged box that is not one of the three we want.
+// NOTE: this :not() chain lists the same slugs as $gn-categories above —
 // if you add/remove a surfaced card, update the map AND this chain together.
 .custom-category-boxes
-  .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-dao):not(.gn-cat-knowledge-base):not(.gn-cat-announcements) {
+  .category-box[class*="gn-cat-"]:not(.gn-cat-general):not(.gn-cat-dao):not(.gn-cat-knowledge-base) {
   display: none !important;
 }
 
 // ---------- Illustrated category tiles ----------
-// Swap the per-category logo for the matched illustration on the four cards.
-// Real slugs: general, dao (shown as Governance), knowledge-base (shown as
-// Onboarding), announcements (shown as Updates). The $governance asset is the
-// Governance illustration; it is keyed to the real `dao` slug. Only tagged
-// boxes (gn-cat-<slug>, added by
+// Swap the per-category logo for the matched illustration on the surfaced
+// cards. Real slugs: general, dao (shown as Governance), knowledge-base.
+// The $governance asset is the Governance illustration; it is keyed to the
+// real `dao` slug. Only tagged boxes (gn-cat-<slug>, added by
 // the JS) are touched. If a slug differs on your install, update the
 // `category_slugs` setting, the CARDS map in the JS, and the blocks below.
 .custom-category-boxes .category-box[class*="gn-cat-"] {
@@ -278,9 +279,9 @@ body.invites-show {
 // ---------- Uniform card heading + description ----------
 // Some homepage cards are injected as plain <h3> text (General, Governance)
 // while others render from the component with the title wrapped in a category
-// badge link (Onboarding, Updates). That made the badge-backed cards differ:
+// badge link (Knowledge Base). That made the badge-backed cards differ:
 // green category color, a colored swatch dot, and the badge's own font sizing.
-// Normalise every custom-box heading/description to one style so all four cards
+// Normalise every custom-box heading/description to one style so all cards
 // are identical regardless of how each was rendered.
 .custom-category-boxes .category-box {
   .category-box-heading,
@@ -744,10 +745,22 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
   }
 }
 
+// ---------- Hide scrubbed categories in the left sidebar ----------
+// The announcements ("Updates") category was removed from the theme's front
+// end. decorateSidebar's removeHiddenSidebarRows() takes the row out of the
+// DOM; this rule covers the instant before that JS runs (and any sidebar
+// re-render the observer misses). Keep in sync with HIDDEN_SLUGS in the JS.
+.sidebar-section-link-wrapper:has(
+    .sidebar-section-link[href*="/c/announcements"]
+  ),
+.sidebar-section-link[href*="/c/announcements"] {
+  display: none !important;
+}
+
 // ---------- Category colour cues — all generated from $gn-categories --------
 // Every place a category's brand colour appears in chrome is emitted here from
-// the one map, so all four categories stay in lock-step with their homepage
-// card illustrations (previously only Onboarding + Updates were wired up, which
+// the one map, so the surfaced categories stay in lock-step with their homepage
+// card illustrations (previously only some were wired up, which
 // left Governance and General showing their raw Discourse colours in the
 // sidebar and on their category-page headers).
 @each $slug, $cfg in $gn-categories {
@@ -755,8 +768,7 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
 
   // (a) Left-sidebar category square. .prefix-square gets an inline background
   // from Discourse and the colour is also carried on .sidebar-section-link-prefix;
-  // override both with !important to win over the inline style (and the cloned
-  // Updates row the JS injects, which carries the same /c/<slug> href).
+  // override both with !important to win over the inline style.
   .sidebar-section-link[href*="/c/#{$slug}"] {
     .sidebar-section-link-prefix {
       color: $color !important;
@@ -819,6 +831,33 @@ $gn-tag-order: ("phase-1": 1, "phase-2": 2, "phase-3": 3, "announcements": 4, "g
 }
 #create-topic {
   border-radius: 999px !important;
+}
+
+// ---------- Keep the nav row clear of its underline ----------
+// Core draws a 3px border-bottom on .navigation-container, and the row's
+// contents end at the exact pixel the border starts (verified live: pills
+// bottom 381px, border top 381px), so the pills — and when logged in the
+// taller wrench / New Topic / chevron buttons — sit hard on the line. Centre
+// the two control groups, add breathing room above the border (!important:
+// core re-asserts padding-bottom at equal specificity and wins on load
+// order), and take the controls down a notch so the row sits cleanly.
+.navigation-container {
+  align-items: center;
+  padding-bottom: 0.5em !important;
+
+  .nav-pills > li > a {
+    padding: 5px 12px;
+    min-height: 28px;
+    font-size: 0.95em;
+  }
+}
+.navigation-controls .btn {
+  padding: 0.4em 0.8em;
+  font-size: 0.95em;
+}
+.list-controls .category-breadcrumb .select-kit.combo-box .select-kit-header {
+  padding: 0.3em 0.7em;
+  font-size: 0.95em;
 }
 
 // ---------- Pill-shape the list nav tabs ----------
